@@ -311,6 +311,8 @@ class Player(object):
 		self.__movedUnits = []
 		self.__finishedUnits = self.units[:]
 		
+		self.game.playerEndsTurn(self)
+		
 		return ACTION_RESULT_SUCCESS
 	#
 	

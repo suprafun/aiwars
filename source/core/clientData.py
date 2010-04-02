@@ -26,7 +26,6 @@ class ClientData:
 			return
 		
 		self.thread = threading.Thread(target = self.__listen)
-		self.thread.setDaemon(True)
 		self.onMessageReceived = onMessageReceived
 		
 		self.thread.start()

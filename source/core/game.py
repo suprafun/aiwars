@@ -11,6 +11,8 @@ class Game(object):
 		
 		self.players = []
 		self.observers = []
+		
+		self.activePlayer = None
 	#
 	
 	def addPlayer(self, name, id):
@@ -43,9 +45,25 @@ class Game(object):
 		return None
 	#
 	
+	# Starts the game, sets the first player to active
+	def start(self):
+		print 'Game started!'
+		
+		self.activePlayer = self.players[0]
+		self.activePlayer.startTurn()
+	#
+	
 	def playerHasLost(self, player):
 		# TODO!
 		print 'Player', player.name, 'has lost!'
+	#
+	
+	def playerEndsTurn(self, player):
+		print 'Player', player.name, 'turn has ended!'
+		
+		playerIndex = self.players.index(player)
+		self.activePlayer = self.players[(playerIndex + 1) % len(self.players)]
+		self.activePlayer.startTurn()
 	#
 	
 	# TODO!!!

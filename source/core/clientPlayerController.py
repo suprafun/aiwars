@@ -1,5 +1,12 @@
+from player import *
 from messageTypes import *
 from serialization import *
+from point import *
+
+
+resultToMessage = {ACTION_RESULT_SUCCESS: SERVER_RESULT_SUCCESS,
+                   ACTION_RESULT_INVALID: SERVER_RESULT_INVALID,
+                   ACTION_RESULT_TRAPPED: SERVER_RESULT_TRAPPED}
 
 
 class ClientPlayerController(object):
@@ -47,37 +54,67 @@ class ClientPlayerController(object):
 	
 	# Translate messages sent by the client into player commands
 	def onMoveCommand(self, message):
-		pass
+		(unitID, route, readBytesCount) = fromStream(message, int, list)
+		route = self.__intListToPointList(route)
+		
+		result = self.player.moveUnit(unitID, route)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onUnloadCommand(self, message):
-		pass
+		(unitID, destinationX, destinationY, readBytesCount) = fromStream(message, int, int, int)
+		destination = Point(destinationX, destinationY)
+		
+		result = self.player.unloadUnit(unitID, destination)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onSupplySurroundingUnitsCommand(self, message):
-		pass
+		(unitID, readBytesCount) = fromStream(message, int)
+		
+		result = self.player.supplySurroundingUnits(unitID)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onAttackUnitCommand(self, message):
-		pass
+		(unitID, targetID, readBytesCount) = fromStream(message, int, int)
+		
+		result = self.player.attackUnit(unitID, targetID)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onBuildUnitCommand(self, message):
-		pass
+		(buildingID, unitTypeID, readBytesCount) = fromStream(message, int, int)
+		
+		result = self.player.buildUnit(buildingID, unitTypeID)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onCaptureBuildingCommand(self, message):
-		pass
+		(unitID, readBytesCount) = fromStream(message, int)
+		
+		result = self.player.captureBuilding(unitID)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onHideUnitCommand(self, message):
-		pass
+		(unitID, hide, readBytesCount) = fromStream(message, int, bool)
+		
+		result = self.player.hideUnit(unitID, hide)
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onEndTurnCommand(self, message):
-		pass
+		result = self.player.endTurn()
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
+	def __intListToPointList(self, intList):
+		pointList = []
+		for i in xrange(0, len(intList), 2):
+			pointList.append(Point(intList[i], intList[i + 1]))
+		return pointList
+	#
 	
 	#================================================================================
 	# Server-side actions, send message to the client

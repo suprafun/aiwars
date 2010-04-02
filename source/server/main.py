@@ -5,6 +5,8 @@ from core.gameServer import *
 from core.messageTypes import *
 from core.serialization import *
 from core.clientPlayerController import *
+from core.guid import *
+from clientPlayerCheck import *
 
 
 class Main(object):
@@ -25,6 +27,8 @@ class Main(object):
 		self.observerControllers = []
 		
 		self.gameServer.listenForConnections(self.onClientConnected, 0.5)
+		
+		self.startGame()
 	#
 	
 	def startGame(self):
@@ -35,22 +39,27 @@ class Main(object):
 		self.gameServer.setCallbackForMessageType(CTS_SET_NAME, None)
 		self.gameServer.setCallbackForMessageType(CTS_READY, None)
 		
-		# Listen for game-specific messages
-		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, self.onClientMoveCommand)
-		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, self.onClientUnloadCommand)
-		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, self.onClientSupplySurroundingUnitsCommand)
-		self.gameServer.setCallbackForMessageType(CTS_ATTACK_UNIT, self.onClientAttackUnitCommand)
-		self.gameServer.setCallbackForMessageType(CTS_BUILD_UNIT, self.onClientBuildUnitCommand)
-		self.gameServer.setCallbackForMessageType(CTS_CAPTURE_BUILDING, self.onClientCaptureBuildingCommand)
-		self.gameServer.setCallbackForMessageType(CTS_HIDE_UNIT, self.onClientHideUnitCommand)
-		self.gameServer.setCallbackForMessageType(CTS_END_TURN, self.onClientEndTurnCommand)
+		# Listen for game-specific messages - the callbacks are wrapped in a small class that checks if the clients player is the active player, so the real callback will not be called
+		# if a client sends messages while it's not it's turn. The client will receive a SERVER_RESULT_NOT_YOUR_TURN message in that case.
+		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, ClientPlayerCheck(self.game, self.onClientMoveCommand))
+		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, ClientPlayerCheck(self.game, self.onClientUnloadCommand))
+		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, ClientPlayerCheck(self.game, self.onClientSupplySurroundingUnitsCommand))
+		self.gameServer.setCallbackForMessageType(CTS_ATTACK_UNIT, ClientPlayerCheck(self.game, self.onClientAttackUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_BUILD_UNIT, ClientPlayerCheck(self.game, self.onClientBuildUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_CAPTURE_BUILDING, ClientPlayerCheck(self.game, self.onClientCaptureBuildingCommand))
+		self.gameServer.setCallbackForMessageType(CTS_HIDE_UNIT, ClientPlayerCheck(self.game, self.onClientHideUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_END_TURN, ClientPlayerCheck(self.game, self.onClientEndTurnCommand))
+		
+		# Add players to the game:
+		for controller in self.playerControllers:
+			if controller.ready:
+				player = self.game.addPlayer(controller.name, getGUID())
+				controller.setPlayer(player)
 		
 		for controller in self.playerControllers:
 			controller.startGame('')
 		
-		# TODO!
-		# NOTE: the client threads will keep the server alive... should we enter a busy loop here or join those threads?
-		pass
+		self.game.start()
 	#
 	
 	def readyPlayersCount(self):
@@ -99,7 +108,6 @@ class Main(object):
 		# TODO: What to do with additional players who haven't sent the ready signal yet? How about possible threading issues here?
 		if self.readyPlayersCount() == self.game.level.getPlayersCount():
 			self.gameServer.stopListeningForConnections()
-			self.startGame()
 	#
 	
 	

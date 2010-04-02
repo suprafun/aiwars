@@ -23,6 +23,8 @@ class Main(object):
 		self.gameClient.listenForData()
 	#
 	
+	
+	# Pre-game messages
 	def onDatabaseData(self, message):
 		print 'Database data received from server'
 		self.gameDatabase.fromStream(message)
@@ -31,19 +33,58 @@ class Main(object):
 	def onMapData(self, message):
 		print 'Map data received from server'
 		self.game.level.fromStream(message)
+	#
+	
+	def onGameData(self, message):
+		print 'Game data received from server'
+		self.game.gameData.fromStream(message)
 		
 		self.gameClient.sendMessageToServer(CTS_SET_NAME, toStream(self.name))
 		self.gameClient.sendMessageToServer(CTS_SET_MODE, CLIENT_MODE_PLAYER)
 		self.gameClient.sendMessageToServer(CTS_READY, '')
 	#
 	
-	def onGameData(self, message):
-		print 'Game data received from server'
+	def onStartGame(self, message):
+		print 'Start the game!'
+		
+		# Stop listening for pre-game data
+		self.gameClient.setCallbackForMessageType(STC_DATABASE_DATA, None)
+		self.gameClient.setCallbackForMessageType(STC_MAP_DATA, None)
+		self.gameClient.setCallbackForMessageType(STC_GAME_DATA, None)
+		self.gameClient.setCallbackForMessageType(STC_START_GAME, None)
+		
+		# Start listening for game-specific messages
+		self.gameClient.setCallbackForMessageType(STC_START_TURN, self.onStartTurn)
+		self.gameClient.setCallbackForMessageType(STC_END_TURN, self.onEndTurn)
+		self.gameClient.setCallbackForMessageType(STC_SITUATION_UPDATE, self.onSituationUpdate)
+		self.gameClient.setCallbackForMessageType(STC_RESULT, self.onResult)
+		self.gameClient.setCallbackForMessageType(STC_END_GAME, self.onEndGame)
+	#
+	
+	
+	# Game-specific messages
+	def onStartTurn(self, message):
+		print 'Starting turn!'
 		pass
 	#
 	
-	def onStartGame(self, message):
-		print 'Start the game!'
+	def onEndTurn(self, message):
+		print 'Turn has ended!'
+		pass
+	#
+	
+	def onSituationUpdate(self, message):
+		print 'Situation update!'
+		pass
+	#
+	
+	def onResult(self, message):
+		print 'Result: ' + {SERVER_RESULT_SUCCESS: 'success', SERVER_RESULT_TRAPPED: 'trapped', SERVER_RESULT_INVALID: 'invalid', SERVER_RESULT_NOT_YOUR_TURN: 'not your turn'}[message]
+		pass
+	#
+	
+	def onEndGame(self, message):
+		print 'Game has ended!'
 		pass
 	#
 #

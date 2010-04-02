@@ -50,3 +50,4 @@ CLIENT_MODE_OBSERVER          = chr(1)   # For clients that only want to observe
 SERVER_RESULT_SUCCESS         = chr(0)   # A given move has been completed without interruption, the situation has been updated
 SERVER_RESULT_TRAPPED         = chr(1)   # A given move has been interrupted by a hidden enemy unit, the situation has been updated
 SERVER_RESULT_INVALID         = chr(2)   # A given move was invalid, the situation has not been updated
+SERVER_RESULT_NOT_YOUR_TURN   = chr(3)   # The client tried to make a move outside it's turn
