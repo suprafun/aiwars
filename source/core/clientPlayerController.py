@@ -3,22 +3,49 @@ from serialization import *
 
 
 class ClientPlayerController(object):
-	def __init__(self, client, player):
+	def __init__(self, client):
 		self.client = client
-		self.player = player
 		
+		self.isObserving = True
+		
+		self.name = ''
+		self.player = None
 		self.ready = False
 	#
 	
-	def setReady(self, ready):
-		self.ready = ready
-	#
-	
-	def isReady(self):
-		return self.ready
+	def setPlayer(self, player):
+		self.player = player
 	#
 	
 	
+	#================================================================================
+	# Messages received from the client
+	
+	# Before the game has started, self.player is still None, so 
+	def onSetNameCommand(self, message):
+		(name, readBytesCount) = fromStream(message, str)
+		self.name = name
+		
+		print 'Client', self.client, 'set name to [' + self.name +']'
+	#
+	
+	def onSetModeCommand(self, message):
+		self.isObserving = (message == CLIENT_MODE_OBSERVER)
+		
+		modestr = 'player'
+		if self.isObserving:
+			modestr = 'observer'
+		print 'Client', self.client, 'set mode to', modestr
+	#
+	
+	def onSetReadyCommand(self, message):
+		self.ready = True
+		
+		print 'Client', self.client, 'is ready!'
+	#
+	
+	
+	# Translate messages sent by the client into player commands
 	def onMoveCommand(self, message):
 		pass
 	#
@@ -50,4 +77,29 @@ class ClientPlayerController(object):
 	def onEndTurnCommand(self, message):
 		pass
 	#
+	
+	
+	#================================================================================
+	# Server-side actions, send message to the client
+	
+	def sendDatabaseData(self, message):
+		self.client.sendMessage(STC_DATABASE_DATA, message)
+	#
+	
+	def sendMapData(self, message):
+		self.client.sendMessage(STC_MAP_DATA, message)
+	#
+	
+	def sendGameData(self, message):
+		self.client.sendMessage(STC_GAME_DATA, message)
+	#
+	
+	def startGame(self, message):
+		self.client.sendMessage(STC_START_GAME, message)
+	#
+	
+	# Player-specific
+	
+	
+	# Observer-specific
 #

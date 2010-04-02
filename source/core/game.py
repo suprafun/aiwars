@@ -1,3 +1,4 @@
+from gameData import *
 from level import *
 from player import *
 
@@ -5,10 +6,8 @@ from player import *
 class Game(object):
 	def __init__(self, gameDatabase):
 		self.gameDatabase = gameDatabase
+		self.gameData = GameData(False)
 		self.level = Level(self, self.gameDatabase)
-		
-		# TODO: Add more game options?
-		self.fogOfWar = False
 		
 		self.players = []
 		self.observers = []

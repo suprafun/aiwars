@@ -20,78 +20,119 @@ class Main(object):
 		self.gameServer.setCallbackForMessageType(CTS_SET_NAME, self.onClientSetsName)
 		self.gameServer.setCallbackForMessageType(CTS_READY, self.onClientReady)
 		
-		self.clientPlayerControllers = []
+		self.controllers = {}
+		self.playerControllers = []
+		self.observerControllers = []
 		
 		self.gameServer.listenForConnections(self.onClientConnected, 0.5)
 	#
 	
 	def startGame(self):
+		print 'Starting the game!'
+		
+		# Ignore mode, name and ready messages during the game!
+		self.gameServer.setCallbackForMessageType(CTS_SET_MODE, None)
+		self.gameServer.setCallbackForMessageType(CTS_SET_NAME, None)
+		self.gameServer.setCallbackForMessageType(CTS_READY, None)
+		
+		# Listen for game-specific messages
+		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, self.onClientMoveCommand)
+		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, self.onClientUnloadCommand)
+		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, self.onClientSupplySurroundingUnitsCommand)
+		self.gameServer.setCallbackForMessageType(CTS_ATTACK_UNIT, self.onClientAttackUnitCommand)
+		self.gameServer.setCallbackForMessageType(CTS_BUILD_UNIT, self.onClientBuildUnitCommand)
+		self.gameServer.setCallbackForMessageType(CTS_CAPTURE_BUILDING, self.onClientCaptureBuildingCommand)
+		self.gameServer.setCallbackForMessageType(CTS_HIDE_UNIT, self.onClientHideUnitCommand)
+		self.gameServer.setCallbackForMessageType(CTS_END_TURN, self.onClientEndTurnCommand)
+		
+		for controller in self.playerControllers:
+			controller.startGame('')
+		
 		# TODO!
+		# NOTE: the client threads will keep the server alive... should we enter a busy loop here or join those threads?
 		pass
 	#
 	
+	def readyPlayersCount(self):
+		readyPlayers = 0
+		for controller in self.playerControllers:
+			if controller.ready:
+				readyPlayers += 1
+		return readyPlayers
+	#
+	
+	
+	# Lobby message handling
 	def onClientConnected(self, client):
 		print 'client connected:', client, 'sending database and map data'
-		client.sendMessage(STC_DATABASE_DATA, self.gameDatabase.toStream())
-		client.sendMessage(STC_MAP_DATA, self.game.level.toStream())
+		
+		controller = ClientPlayerController(client)
+		self.controllers[client] = controller
+		self.observerControllers.append(controller)
+		
+		controller.sendDatabaseData(self.gameDatabase.toStream())
+		controller.sendMapData(self.game.level.toStream())
+		controller.sendGameData(self.game.gameData.toStream())
 	#
 	
 	def onClientSetsMode(self, client, message):
-		if message == CLIENT_MODE_PLAYER:
-			player = self.game.addPlayer('Unnamed player #' + str(client.id), client.id)
-			self.clientPlayerControllers.append(ClientPlayerController(client, player))
-			
-			print 'Client #' + str(client.id) + ' sets mode to PLAYER'
-		elif message == CLIENT_MODE_OBSERVER:
-			player = self.game.getPlayerByID(client.id)
-			if player != None:
-				self.game.removePlayer(player)
-			
-			clientPlayerController = self.getClientPlayerControllerByID(client.id)
-			if clientPlayerController != None:
-				self.clientPlayerControllers.remove(clientPlayerController)
-			
-			# TODO: Register observer!!!
-			print 'Client #' + str(client.id) + ' sets mode to OBSERVER'
-		else:
-			print 'Client #' + str(client.id) + ' sets mode to invalid mode!'
+		controller = self.controllers[client]
+		controller.onSetModeCommand(message)
+		
+		# Place the controller in the correct list
+		if controller.isObserving and controller not in self.observerControllers:
+			self.playerControllers.remove(controller)
+			self.observerControllers.append(controller)
+		elif not controller.isObserving and controller not in self.playerControllers:
+			self.observerControllers.remove(controller)
+			self.playerControllers.append(controller)
 	#
 	
 	def onClientSetsName(self, client, message):
-		(name, readBytesCount) = fromStream(message, str)
-		clientPlayerController = self.getClientPlayerControllerByID(client.id)
-		if clientPlayerController != None:
-			clientPlayerController.name = name
-		
-		print 'Client #' + str(client.id) + ' sets name to ' + name
+		self.controllers[client].onSetNameCommand(message)
 	#
 	
 	def onClientReady(self, client, message):
-		clientPlayerController = self.getClientPlayerControllerByID(client.id)
-		if clientPlayerController != None:
-			clientPlayerController.setReady(True)
+		controller = self.controllers[client]
+		controller.onSetReadyCommand(message)
 		
-		print 'Client #' + str(client.id) + ' is READY!'
-		
-		if len(self.game.players) == self.game.level.getPlayersCount() and self.allPlayerClientsReady():
-			print 'All clients are ready now!'
+		# TODO: What to do with additional players who haven't sent the ready signal yet? How about possible threading issues here?
+		if self.readyPlayersCount() == self.game.level.getPlayersCount():
 			self.gameServer.stopListeningForConnections()
-			
 			self.startGame()
 	#
 	
 	
-	def getClientPlayerControllerByID(self, clientPlayerControllerID):
-		for clientPlayerController in self.clientPlayerControllers:
-			if clientPlayerController.client.id == clientPlayerControllerID:
-				return clientPlayerController
-		return None
+	# Game message handling
+	def onClientMoveCommand(self, client, message):
+		self.controllers[client].onMoveCommand(message)
 	#
 	
-	def allPlayerClientsReady(self):
-		for clientPlayerController in self.clientPlayerControllers:
-			if not clientPlayerController.isReady():
-				return False
-		return True
+	def onClientUnloadCommand(self, client, message):
+		self.controllers[client].onUnloadCommand(message)
+	#
+	
+	def onClientSupplySurroundingUnitsCommand(self, client, message):
+		self.controllers[client].onSupplySurroundingUnitsCommand(message)
+	#
+	
+	def onClientAttackUnitCommand(self, client, message):
+		self.controllers[client].onAttackUnitCommand(message)
+	#
+	
+	def onClientBuildUnitCommand(self, client, message):
+		self.controllers[client].onBuildUnitCommand(message)
+	#
+	
+	def onClientCaptureBuildingCommand(self, client, message):
+		self.controllers[client].onCaptureBuildingCommand(message)
+	#
+	
+	def onClientHideUnitCommand(self, client, message):
+		self.controllers[client].onHideUnitCommand(message)
+	#
+	
+	def onClientEndTurnCommand(self, client, message):
+		self.controllers[client].onEndTurnCommand(message)
 	#
 #
