@@ -1,5 +1,5 @@
 CD source
 
-main.py
+run_server.py
 
 PAUSE

@@ -1,9 +1,8 @@
 
 
 class UnitType:
-	def __init__(self, name, texture, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False, maxTransportSlots = 0):
+	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False, maxTransportSlots = 0):
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
-		self.texture = texture                          # This type's texture.
 		self.cost = cost                                # How expensive this unit type is to construct.
 		self.movementPoints = movementPoints            # How many movement points this unit has (some tiles take cost points to cross than others).
 		self.vision = vision                            # How far this unit can see.

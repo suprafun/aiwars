@@ -1,9 +1,8 @@
 
 
 class BuildingType:
-	def __init__(self, name, texture, income, availableUnitTypes = [], maxCapturePoints = 20):
+	def __init__(self, name, income, availableUnitTypes = [], maxCapturePoints = 20):
 		self.name = name
-		self.texture = texture
 		
 		self.income = income
 		self.availableUnitTypes = availableUnitTypes
