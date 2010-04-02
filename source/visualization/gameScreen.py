@@ -1,4 +1,5 @@
 import os
+import pygame
 from core.point import *
 from tilemap import *
 from spriteCollection import *
@@ -12,7 +13,16 @@ class GameScreen:
 		self.screenDimension = screenDimension
 		
 		self.cameraMouseOffset = Point(0, 0)
-		self.rightMouseButtonDown = False
+		self.cameraDragging = False
+		self.arrowKeyState = {pygame.constants.K_UP: False, \
+		                      pygame.constants.K_DOWN: False, \
+		                      pygame.constants.K_LEFT: False, \
+		                      pygame.constants.K_RIGHT: False}
+		self.arrowKeyMovement = {pygame.constants.K_UP: Point(0, 1), \
+		                        pygame.constants.K_DOWN: Point(0, -1), \
+		                        pygame.constants.K_LEFT: Point(1, 0), \
+		                        pygame.constants.K_RIGHT: Point(-1, 0)}
+		self.arrowKeyMovementSpeed = 32
 		
 		self.drawGrid = True
 		
@@ -27,26 +37,29 @@ class GameScreen:
 	def onKeyDown(self, key):
 		if key == ord('g'):
 			self.drawGrid = not self.drawGrid
+		elif self.arrowKeyState.has_key(key):
+			self.arrowKeyState[key] = True
 	#
 	
 	def onKeyUp(self, key):
-		pass
+		if self.arrowKeyState.has_key(key):
+			self.arrowKeyState[key] = False
 	#
 	
 	def onMouseDown(self, button, position):
 		if button == 3: # Right mouse button, TODO: Look for pygame constants for this?
 			self.cameraMouseOffset.x = self.camera.x - position[0]
 			self.cameraMouseOffset.y = self.camera.y - position[1]
-			self.rightMouseButtonDown = True
+			self.cameraDragging = True
 	#
 	
 	def onMouseUp(self, button, position):
 		if button == 3:
-			self.rightMouseButtonDown = False
+			self.cameraDragging = False
 	#
 	
 	def onMouseMove(self, position):
-		if self.rightMouseButtonDown:
+		if self.cameraDragging:
 			self.camera.x = position[0] + self.cameraMouseOffset.x
 			self.camera.y = position[1] + self.cameraMouseOffset.y
 			
@@ -54,7 +67,11 @@ class GameScreen:
 	#
 	
 	def update(self):
-		pass
+		if not self.cameraDragging:
+			for key in self.arrowKeyState.keys():
+				if self.arrowKeyState[key]:
+					self.camera += self.arrowKeyMovement[key] * self.arrowKeyMovementSpeed
+			self.clampCameraToLevel()
 	#
 	
 	def draw(self, screen):

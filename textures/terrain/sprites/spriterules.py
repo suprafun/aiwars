@@ -30,3 +30,11 @@ rules.setSpriteCount('City', 3, 5)
 rules.addRule('City', 'apartment_1.png', ( 0,  8, 16, 11))
 rules.addRule('City', 'apartment_2.png', ( 0,  5,  9, 15))
 rules.addRule('City', 'apartment_3.png', ( 0,  8, 10,  9))
+
+# Base
+rules.setSpriteCount('Base', 1, 1)
+rules.addRule('Base', 'factory_1.png', ( 0,  0, 32, 32))
+
+# Headquarters
+rules.setSpriteCount('Headquarters', 1, 1)
+rules.addRule('Headquarters', 'headquarters_1.png', ( 0, 16, 32, 32))
