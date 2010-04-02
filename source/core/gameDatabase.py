@@ -28,15 +28,6 @@ class GameDatabase(object):
 			buildingType.gameDatabase = self
 	#
 	
-	def loadFromBuffer(self, buffer):
-		self.reset()
-		pass
-	#
-	
-	def saveToBuffer(self, buffer):
-		pass
-	#
-	
 	
 	def getIndexOfTerrainType(self, terrainType):
 		return self.terrainTypes.index(terrainType)

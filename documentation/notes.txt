@@ -69,3 +69,7 @@ uint + the 12 message bytes), but the sizeof uint will say '12', not '16'.
 
 NOTE: Each message should have an identifier byte prepended to it. This is part of the message
 and so counts towards it's size.
+
+NOTE: Game commands are going to change a bit: instead of embedding a movement command into others, they are now separated.
+So a unit that attacks another will typically send two commands: one to move towards it's target,
+and another command for the actual attack.

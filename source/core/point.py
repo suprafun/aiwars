@@ -13,7 +13,7 @@ class Point(object):
 		self.y = other.y
 	#
 	
-	def equals(self, other):
+	def __eq__(self, other):
 		return self.x == other.x and self.y == other.y
 	#
 #

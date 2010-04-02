@@ -54,7 +54,7 @@ class UnitType(object):
 	
 	
 	def movementCostFor(self, terrainType):
-		if self.movementCostOverride.contains(terrainType):
+		if self.movementCostOverride.has_key(terrainType):
 			return self.movementCostOverride[terrainType]
 		else:
 			return terrainType.movementCost

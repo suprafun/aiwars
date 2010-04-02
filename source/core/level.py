@@ -15,7 +15,7 @@ class Level(object):
 		self.name = 'Unnamed'
 		self.playersData = []
 		
-		self.terrain = [[]]
+		self.terrain = []
 		
 		self.buildings = []
 	#
@@ -110,5 +110,14 @@ class Level(object):
 			self.terrain.append([self.gameDatabase.getTerrainType(tile) for tile in tiles[row * width:row * width + width]])
 		
 		return readBytesCount
+	#
+	
+	def toString(self):
+		strrep = ''
+		for row in self.terrain:
+			for terrainType in row:
+				strrep += str(self.gameDatabase.getIndexOfTerrainType(terrainType)).ljust(3, ' ')
+			strrep += '\n'
+		return strrep
 	#
 #
