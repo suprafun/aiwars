@@ -27,3 +27,12 @@ STC_END_TURN                  = chr(6)
 STC_SITUATION_UPDATE          = chr(7)
 STC_RESULT                    = chr(8)
 STC_END_GAME                  = chr(9)
+
+
+# Message-specific values
+CLIENT_MODE_PLAYER            = chr(1)   # For clients that want to participate in the match
+CLIENT_MODE_OBSERVER          = chr(2)   # For clients that only want to observe the match
+
+SERVER_RESULT_SUCCESS         = chr(1)   # A given move has been completed without interruption, the situation has been updated
+SERVER_RESULT_TRAPPED         = chr(2)   # A given move has been interrupted by a hidden enemy unit, the situation has been updated
+SERVER_RESULT_INVALID         = chr(3)   # A given move was invalid, the situation has not been updated

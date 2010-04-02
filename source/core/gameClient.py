@@ -31,7 +31,7 @@ class GameClient:
 			while len(self.__dataBuffer) >= 4:
 				(messageSize,) = struct.unpack('>I', self.__dataBuffer[:4])
 				if len(self.__dataBuffer) >= messageSize + 4:
-					onMessageReceived(self.__dataBuffer[4:4 + messageSize])
+					onMessageReceived(self.__dataBuffer[4], self.__dataBuffer[5:4 + messageSize])
 					self.__dataBuffer = self.__dataBuffer[4 + messageSize:]
 				else:
 					break
@@ -43,7 +43,7 @@ class GameClient:
 	#
 	
 	# Sends a message to the server. A sizeof unsigned integer will be prepended.
-	def sendMessageToServer(self, message):
-		self.connection.send(struct.pack('>I', len(message)) + message)
+	def sendMessageToServer(self, messageType, message):
+		self.connection.send(struct.pack('>I', len(messageType) + len(message)) + messageType + message)
 	#
 #

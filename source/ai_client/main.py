@@ -19,17 +19,14 @@ class Main(object):
 		self.gameClient.listenForData(self.onMessageReceivedFromServer)
 	#
 	
-	def onMessageReceivedFromServer(self, message):
+	def onMessageReceivedFromServer(self, messageType, message):
 		print 'received message from server'
-		
-		messageType = message[0]
 		
 		if messageType == STC_DATABASE_DATA:
 			print 'Database data received!'
 		elif messageType == STC_MAP_DATA:
 			print 'Map data received!'
-			self.gameClient.sendMessageToServer(CTS_SET_NAME + toStream(self.name))
-		
-		self.gameClient.sendMessageToServer('Thanks from ' + self.name)
+			self.gameClient.sendMessageToServer(CTS_SET_NAME, toStream(self.name))
+			self.gameClient.sendMessageToServer(CTS_SET_MODE, CLIENT_MODE_PLAYER)
 	#
 #

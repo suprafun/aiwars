@@ -16,17 +16,17 @@ class Main(object):
 		
 		self.gameServer = GameServer(host, port)
 		self.gameServer.onClientConnected = self.onClientConnected
-		self.gameServer.onDataReceivedFromClient = self.onDataReceivedFromClient
+		self.gameServer.onMessageReceivedFromClient = self.onMessageReceivedFromClient
 		self.gameServer.listenForConnections()
 	#
 	
 	def onClientConnected(self, client):
 		print 'client connected:', client, 'sending database and map data'
-		client.sendMessage(STC_DATABASE_DATA + self.gameDatabase.toStream())
-		client.sendMessage(STC_MAP_DATA + self.game.level.toStream())
+		client.sendMessage(STC_DATABASE_DATA, self.gameDatabase.toStream())
+		client.sendMessage(STC_MAP_DATA, self.game.level.toStream())
 	#
 	
-	def onDataReceivedFromClient(self, client, data):
-		print 'client', client, 'has sent data:', data
+	def onMessageReceivedFromClient(self, client, messageType, message):
+		print 'client', client, 'has sent message type:', messageType, 'message:', message
 	#
 #

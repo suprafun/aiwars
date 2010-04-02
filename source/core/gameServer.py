@@ -14,7 +14,7 @@ class GameServer:
 		
 		# Callbacks - these can be set by the calling code.
 		self.onClientConnected = None
-		self.onDataReceivedFromClient = None
+		self.onMessageReceivedFromClient = None
 	#
 	
 	# A blocking call, which will call the onClientConnect callback whenever a new client connects.
@@ -26,14 +26,18 @@ class GameServer:
 		while self.__waitForConnections:
 			(connection, address) = self.server.accept()
 			
-			clientData = ClientData(self.__nextClientID, connection, address)
-			self.__nextClientID += 1
+			clientData = ClientData(self.__getNextClientID(), connection, address)
 			
 			self.__clients.append(clientData)
 			if self.onClientConnected != None:
 				self.onClientConnected(clientData)
 			
-			clientData.listenForData(self.__onDataReceivedFromClient)
+			clientData.listenForData(self.__onMessageReceivedFromClient)
+	#
+	
+	def __getNextClientID(self):
+		self.__nextClientID += 1
+		return self.__nextClientID - 1
 	#
 	
 	# Stop listening for connections. This will make the call to listenForConnections return.
@@ -41,9 +45,9 @@ class GameServer:
 		self.__waitForConnections = False
 	#
 	
-	def __onDataReceivedFromClient(self, clientData, data):
-		if self.onDataReceivedFromClient != None:
-			self.onDataReceivedFromClient(clientData, data)
+	def __onMessageReceivedFromClient(self, clientData, messageType, message):
+		if self.onMessageReceivedFromClient != None:
+			self.onMessageReceivedFromClient(clientData, messageType, message)
 	#
 	
 	
