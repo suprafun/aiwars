@@ -14,7 +14,7 @@ server provides interface for client (CLIENT -> SERVER):
 connect() -> connects this client with the server
 set_mode(mode) -> mode is either 'observer' or 'player'
 set_name(name) -> sets this clients name
-end_turn() -> ends the turn of this client early
+ready() -> indicates that this client is ready to start a game
 
 -- game commands --
 move_unit(unit_id, route)
@@ -33,8 +33,25 @@ client provides interface for server (SERVER -> CLIENT):
 -- pre-game commands --
 send_map_data() -> sends the chosen map data to the client
 send_database_data() -> sends the unit/building/terrain data to the client
+send_game_parameters() -> sends information like fog-of-war on/off, victory terms, etc.
 game_starts() -> signals a game start
 
 -- game commands --
 turn_starts() -> it's time for this client to play his turn
 turn_ends() -> time's up for this client, his turn has ended
+
+
+When a client connects, the following messages are sent:
+client -> server: connect()
+server -> client: send_database_data()
+server -> client: send_map_data()
+client -> server: set_mode()
+client -> server: set_name()
+client -> server: ready()
+
+When all clients have signalled that they're ready, the server starts the game.
+He stops listening for new connections.
+The server only needs to listen for messages from one client at a time, but he will
+need to broadcast messages to all observers + that one client.
+
+Send more parameters to server at start-up: turn-time, fog-of-war on/off?
