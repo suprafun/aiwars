@@ -95,11 +95,11 @@ class Level(object):
 		 width, \
 		 height, \
 		 tiles, \
-		 buildingCount, \
+		 buildingsCount, \
 		 readBytesCount) = fromStream(stream, str, int, int, list, int)
 		
 		self.buildings = []
-		for i in xrange(buildingCount):
+		for i in xrange(buildingsCount):
 			# TODO: Instead of having to create a Building instance with some default type, construct one directly from a stream?
 			building = Building(self.gameDatabase, self.gameDatabase.getBuildingType(0), 0, Point(0, 0))
 			readBytesCount += building.fromStream(stream[readBytesCount:])

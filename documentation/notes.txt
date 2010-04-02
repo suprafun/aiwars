@@ -38,7 +38,13 @@ game_starts() -> signals a game start
 
 -- game commands --
 turn_starts() -> it's time for this client to play his turn
+confirmation() -> success, trapped, failure
+situation_update() -> send a client-specific situation update,
+                      containing only the data that can be seen by this client
+                      (important distinction when using fog-of-war),
+                      note that this also contains money (e.g. player stats)
 turn_ends() -> time's up for this client, his turn has ended
+game_ends() -> end of game, tells the client whether or not he has won
 
 
 When a client connects, the following messages are sent:
@@ -55,3 +61,11 @@ The server only needs to listen for messages from one client at a time, but he w
 need to broadcast messages to all observers + that one client.
 
 Send more parameters to server at start-up: turn-time, fog-of-war on/off?
+
+
+NOTE: Each message has a prepended sizeof unsigned integer. This uint denotes the number of bytes that will follow.
+Technically, it's not part of the message, so if a message is 12 bytes, a total of 16 bytes will be sent (the sizeof
+uint + the 12 message bytes), but the sizeof uint will say '12', not '16'.
+
+NOTE: Each message should have an identifier byte prepended to it. This is part of the message
+and so counts towards it's size.

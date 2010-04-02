@@ -4,7 +4,7 @@ import struct
 # This method makes it convenient to pack multiple objects into a struct.
 # It can handle booleans, integers, strings and integer lists.
 def toStream(*variables):
-	format = ''
+	format = '>'
 	content = []
 	
 	for variable in variables:
@@ -40,38 +40,29 @@ def fromStream(stream, *types):
 	streamPos = 0
 	for _type in types:
 		if _type == bool:
-			if struct.unpack('B', stream[streamPos:streamPos + 1])[0] == 0:
+			if struct.unpack('>B', stream[streamPos:streamPos + 1])[0] == 0:
 				content.append(False)
 			else:
 				content.append(True)
 			streamPos += 1
 		elif _type == int:
-			streamPos = __streamPosAccountedForPadding(streamPos)
-			content.append(struct.unpack('i', stream[streamPos:streamPos + 4])[0])
+			content.append(struct.unpack('>i', stream[streamPos:streamPos + 4])[0])
 			streamPos += 4
 		elif _type == str:
-			strLength = struct.unpack('I', stream[streamPos:streamPos + 4])[0]
+			strLength = struct.unpack('>I', stream[streamPos:streamPos + 4])[0]
 			streamPos += 4
-			content.append(struct.unpack(str(strLength) + 's', stream[streamPos:streamPos + strLength])[0])
+			content.append(struct.unpack('>' + str(strLength) + 's', stream[streamPos:streamPos + strLength])[0])
 			streamPos += strLength
 		elif _type == list:
-			streamPos = __streamPosAccountedForPadding(streamPos)
-			listLength = struct.unpack('I', stream[streamPos:streamPos + 4])[0]
+			listLength = struct.unpack('>I', stream[streamPos:streamPos + 4])[0]
 			streamPos += 4
 			content.append([])
 			if listLength > 0:
-				content[-1].extend(struct.unpack(str(listLength) + 'i', stream[streamPos:streamPos + listLength * 4]))
+				content[-1].extend(struct.unpack('>' + str(listLength) + 'i', stream[streamPos:streamPos + listLength * 4]))
 			streamPos += listLength * 4
 		else:
 			print 'Unsupported type, can\'t read from stream!'
 	
 	content.append(streamPos)
 	return content
-#
-
-def __streamPosAccountedForPadding(streamPos):
-	if streamPos & 3 > 0:
-		return streamPos + (4 - streamPos & 3)
-	else:
-		return streamPos
 #

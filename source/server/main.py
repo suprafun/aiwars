@@ -3,6 +3,8 @@ from core.game import *
 from core.gameDatabase import *
 from core.gameServer import *
 
+from core.messageTypes import *
+
 
 class Main(object):
 	def __init__(self, host, port, levelfile, databasefile):
@@ -19,8 +21,9 @@ class Main(object):
 	#
 	
 	def onClientConnected(self, client):
-		print 'client connected:', client
-		client.sendMessage('Welcome!')
+		print 'client connected:', client, 'sending database and map data'
+		client.sendMessage(STC_DATABASE_DATA + self.gameDatabase.toStream())
+		client.sendMessage(STC_MAP_DATA + self.game.level.toStream())
 	#
 	
 	def onDataReceivedFromClient(self, client, data):

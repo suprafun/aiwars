@@ -35,11 +35,13 @@ class TerrainType(object):
 		self.buildingType, \
 		readBytesCount) = fromStream(stream, str, int, int, bool, int)
 		
+		return readBytesCount
+	#
+	
+	def fromStreamPostProcess(self):
 		if self.buildingType == -1:
 			self.buildingType = None
 		else:
 			self.buildingType = self.gameDatabase.getBuildingType(self.buildingType)
-		
-		return readBytesCount
 	#
 #

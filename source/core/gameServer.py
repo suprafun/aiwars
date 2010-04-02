@@ -47,7 +47,7 @@ class GameServer:
 	#
 	
 	
-	# Sends a message to the client with the specified ID. The message is assumed to be properly formatted - this function will not alter the message in any way.
+	# Sends a message to the client with the specified ID.
 	def sendMessageToClient(self, clientID, message):
 		client = self.__getClientByID
 		if client != None:

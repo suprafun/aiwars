@@ -1,5 +1,6 @@
 import socket
 import threading
+import struct
 
 
 class ClientData:
@@ -39,8 +40,8 @@ class ClientData:
 			self.onDataReceived(self, data)
 	#
 	
-	# Sends a message to this client. The message is assumed to be properly formatted - this function will not alter the message in any way.
+	# Sends a message to this client. A sizeof unsigned integer will be prepended.
 	def sendMessage(self, message):
-		self.connection.send(message)
+		self.connection.send(struct.pack('>I', len(message)) + message)
 	#
 #

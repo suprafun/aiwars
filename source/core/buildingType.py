@@ -29,10 +29,12 @@ class BuildingType(object):
 		 self.income, \
 		 self.availableUnitTypes, \
 		 self.maxCapturePoints, \
-		 readBytesCount) = fromStream(stream, int, str, list, int)
-		
-		self.availableUnitTypes = [self.gameDatabase.getUnitType(index) for index in self.availableUnitTypes]
+		 readBytesCount) = fromStream(stream, str, int, list, int)
 		
 		return readBytesCount
+	#
+	
+	def fromStreamPostProcess(self):
+		self.availableUnitTypes = [self.gameDatabase.getUnitType(index) for index in self.availableUnitTypes]
 	#
 #
