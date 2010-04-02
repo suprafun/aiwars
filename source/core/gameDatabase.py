@@ -9,6 +9,8 @@ class GameDatabase(object):
 	#
 	
 	def reset(self):
+		self.name = ''
+		
 		self.terrainTypes = []
 		self.unitTypes = []
 		self.buildingTypes = []
@@ -68,16 +70,18 @@ class GameDatabase(object):
 		for buildingType in self.buildingTypes:
 			buildingTypesStream += buildingType.toStream()
 		
-		return toStream(len(self.terrainTypes), \
+		return toStream(self.name, \
+		                len(self.terrainTypes), \
 		                len(self.unitTypes), \
 		                len(self.buildingTypes)) + terrainTypesStream + unitTypesStream + buildingTypesStream
 	#
 	
 	def fromStream(self, stream):
-		(terrainTypesCount, \
+		(self.name, \
+		 terrainTypesCount, \
 		 unitTypesCount, \
 		 buildingTypesCount, \
-		 readBytesCount) = fromStream(stream, int, int, int)
+		 readBytesCount) = fromStream(stream, str, int, int, int)
 		
 		self.terrainTypes = []
 		for i in xrange(terrainTypesCount):

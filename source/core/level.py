@@ -14,16 +14,20 @@ class Level(object):
 	
 	def reset(self):
 		self.name = 'Unnamed'
+		self.supportedDatabases = []
 		self.playersData = []
 		
 		self.terrain = []
-		
 		self.buildings = []
 	#
 	
 	def loadFromFile(self, filename):
 		self.reset()
 		execfile(filename, {'level': self, 'Point': Point})
+		
+		if not self.gameDatabase.name in self.supportedDatabases:
+			print 'Level [' + self.name + '] can\'t be played with database [' + self.gameDatabase.name + ']!'
+			self.reset()
 	#
 	
 	def setTileData(self, tileData):
