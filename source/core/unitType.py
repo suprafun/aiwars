@@ -1,6 +1,6 @@
 
 
-class UnitType:
+class UnitType(object):
 	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False):
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
 		self.cost = cost                                # How expensive this unit type is to construct.

@@ -7,6 +7,7 @@ plains              = TerrainType('Plains',        1,  1)
 forest              = TerrainType('Forest',        2,  1, hideUnits = True)
 mountain            = TerrainType('Mountain',      4,  99)
 river               = TerrainType('River',         0,  99)
+bridge              = TerrainType('Bridge',        0,  1)
 shoal               = TerrainType('Shoal',         0,  1)
 sea                 = TerrainType('Sea',           0,  99)
 reef                = TerrainType('Reef',          2,  1, hideUnits = True)
@@ -14,7 +15,8 @@ cityTerrain         = TerrainType('City',          3,  1)
 baseTerrain         = TerrainType('Base',          3,  1)
 headquartersTerrain = TerrainType('Headquarters',  4,  1)
 
-database.terrainTypes.extend([road, plains, forest, mountain, river, shoal, sea, reef, cityTerrain, baseTerrain, headquartersTerrain])
+# Add the terrain types to the database
+database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, shoal, sea, reef, cityTerrain, baseTerrain, headquartersTerrain])
 
 
 #================================================================================
@@ -33,6 +35,7 @@ artillery  = UnitType('Artillery',     1000,   3,  2,  0, minRange = 2, maxRange
 rocket     = UnitType('Rocket',        1000,   3,  2,  0, minRange = 3, maxRange = 5, canFireAfterMove = False, canRetaliate = False)
 # TODO: Ships, aircraft!
 
+# Add the unit types to the database
 database.unitTypes.extend([infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rocket])
 
 # Vision overrides
@@ -95,8 +98,14 @@ city         = BuildingType('City',           1000)
 base         = BuildingType('Base',           1000)
 headquarters = BuildingType('Headquarters',   1000)
 
+# Add the building types to the database
 database.buildingTypes.extend([city, base, headquarters])
 
 # Bases can build ground units
 for unitType in [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rocket]:
 	base.canBuild(unitType)
+
+# Associate buildings with their respective terrain types
+cityTerrain.buildingType         = city
+baseTerrain.buildingType         = base
+headquartersTerrain.buildingType = headquarters

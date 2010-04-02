@@ -3,7 +3,7 @@ from guid import *
 from point import *
 
 
-class Unit:
+class Unit(object):
 	# Creates a new unit, of a given type, at the specified position. Units keep a reference to the Field instance that they're located on, in order to check their surroundings.
 	def __init__(self, type, position, field):
 		self.type = type

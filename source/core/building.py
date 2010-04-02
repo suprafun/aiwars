@@ -2,10 +2,10 @@ from buildingType import *
 from guid import *
 
 
-class Building:
+class Building(object):
 	def __init__(self, type, position):
 		self.type = type
-		self.id = guid.getGUID()
+		self.id = getGUID()
 		self.position = position
 		
 		self.capturePoints = self.type.maxCapturePoints

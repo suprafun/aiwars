@@ -3,7 +3,7 @@ from unitType import *
 from buildingType import *
 
 
-class GameDatabase:
+class GameDatabase(object):
 	def __init__(self):
 		self.reset()
 	#
@@ -27,5 +27,18 @@ class GameDatabase:
 	
 	def saveToBuffer(self, buffer):
 		pass
+	#
+	
+	
+	def getTerrainType(self, index):
+		return self.terrainTypes[index]
+	#
+	
+	def getUnitType(self, index):
+		return self.unitTypes[index]
+	#
+	
+	def getBuildingType(self, index):
+		return self.buildingTypes[index]
 	#
 #

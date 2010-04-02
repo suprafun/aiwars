@@ -1,6 +1,6 @@
 
 
-class BuildingType:
+class BuildingType(object):
 	def __init__(self, name, income, availableUnitTypes = [], maxCapturePoints = 20):
 		self.name = name
 		

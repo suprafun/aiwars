@@ -1,10 +1,15 @@
 from level import *
 
 
-class Game:
-	def __init__(self):
-		self.level = None
-		self.database = None
-		self.clients = []
+class Game(object):
+	def __init__(self, gameDatabase):
+		self.gameDatabase = gameDatabase
+		self.level = Level(self.gameDatabase)
+		
+		# TODO!
+	#
+	
+	def loadLevelFromFile(self, filename):
+		self.level.loadFromFile(filename)
 	#
 #
