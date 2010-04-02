@@ -32,21 +32,25 @@ class GameClient:
 		
 		self.__listenForData = True
 		while self.__listenForData:
-			data = self.connection.recv(4096)
-			self.__dataBuffer += data
-			
-			# Check the incoming data for messages, call the type-specific callback for each individual message. If a message hasn't completely arrived yet,
-			# continue waiting for the rest to come in.
-			while len(self.__dataBuffer) >= 4:
-				(messageSize,) = struct.unpack('>I', self.__dataBuffer[:4])
-				if len(self.__dataBuffer) >= messageSize + 4:
-					messageType = self.__dataBuffer[4]
-					if self.__onMessageFromServer.has_key(messageType):
-						self.__onMessageFromServer[messageType](self.__dataBuffer[5:4 + messageSize])
-					
-					self.__dataBuffer = self.__dataBuffer[4 + messageSize:]
-				else:
-					break
+			try:
+				data = self.connection.recv(4096)
+			except socket.timeout:
+				pass
+			else:
+				self.__dataBuffer += data
+				
+				# Check the incoming data for messages, call the type-specific callback for each individual message. If a message hasn't completely arrived yet,
+				# continue waiting for the rest to come in.
+				while len(self.__dataBuffer) >= 4:
+					(messageSize,) = struct.unpack('>I', self.__dataBuffer[:4])
+					if len(self.__dataBuffer) >= messageSize + 4:
+						messageType = self.__dataBuffer[4]
+						if self.__onMessageFromServer.has_key(messageType):
+							self.__onMessageFromServer[messageType](self.__dataBuffer[5:4 + messageSize])
+						
+						self.__dataBuffer = self.__dataBuffer[4 + messageSize:]
+					else:
+						break
 	#
 	
 	# Stops listening for data.

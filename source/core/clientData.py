@@ -26,6 +26,7 @@ class ClientData:
 			return
 		
 		self.thread = threading.Thread(target = self.__listen)
+		self.thread.setDaemon(True)
 		self.onMessageReceived = onMessageReceived
 		
 		self.thread.start()
@@ -40,18 +41,22 @@ class ClientData:
 		self.__listenForData = True
 		
 		while self.__listenForData:
-			data = self.connection.recv(4096)
-			self.__dataBuffer += data
-			
-			# Check the incoming data for messages, call the callback for each individual message. If a message hasn't completely arrived yet,
-			# continue waiting for the rest to come in.
-			while len(self.__dataBuffer) >= 4:
-				(messageSize,) = struct.unpack('>I', self.__dataBuffer[:4])
-				if len(self.__dataBuffer) >= messageSize + 4:
-					self.onMessageReceived(self, self.__dataBuffer[4], self.__dataBuffer[5:4 + messageSize])
-					self.__dataBuffer = self.__dataBuffer[4 + messageSize:]
-				else:
-					break
+			try:
+				data = self.connection.recv(4096)
+			except socket.timeout:
+				pass
+			else:
+				self.__dataBuffer += data
+				
+				# Check the incoming data for messages, call the callback for each individual message. If a message hasn't completely arrived yet,
+				# continue waiting for the rest to come in.
+				while len(self.__dataBuffer) >= 4:
+					(messageSize,) = struct.unpack('>I', self.__dataBuffer[:4])
+					if len(self.__dataBuffer) >= messageSize + 4:
+						self.onMessageReceived(self, self.__dataBuffer[4], self.__dataBuffer[5:4 + messageSize])
+						self.__dataBuffer = self.__dataBuffer[4 + messageSize:]
+					else:
+						break
 	#
 	
 	# Sends a message to this client. A sizeof unsigned integer will be prepended.
