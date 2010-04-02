@@ -6,6 +6,8 @@ class Game(object):
 		self.gameDatabase = gameDatabase
 		self.level = Level(self.gameDatabase)
 		
+		self.fogOfWar = False
+		
 		# TODO!
 	#
 	
