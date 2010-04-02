@@ -8,7 +8,7 @@ if len(sys.argv) < 4:
 	print '    run_server.py [host] [port] [name]'
 	print ''
 	print 'For example:'
-	print '    run_server.py localhost 7777 test_AI'
+	print '    run_server.py localhost 7777 "AI Client 1"'
 	print '==============================================================='
 else:
 	main = Main(sys.argv[1], int(sys.argv[2]), sys.argv[3])

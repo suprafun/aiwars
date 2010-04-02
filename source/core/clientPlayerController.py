@@ -22,6 +22,17 @@ class ClientPlayerController(object):
 	
 	def setPlayer(self, player):
 		self.player = player
+		
+		self.player.addListener(self)
+	#
+	
+	
+	def onPlayerStartsTurn(self, player):
+		self.client.sendMessage(STC_START_TURN, '')
+	#
+	
+	def onPlayerEndsTurn(self, player):
+		self.client.sendMessage(STC_END_TURN, '')
 	#
 	
 	

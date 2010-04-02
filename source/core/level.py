@@ -117,7 +117,7 @@ class Level(object):
 			readBytesCount += building.fromStream(stream[readBytesCount:])
 			self.buildings.append(building)
 		
-		self.terrain = [[]]
+		self.terrain = []
 		for row in xrange(height):
 			self.terrain.append([self.gameDatabase.getTerrainType(tile) for tile in tiles[row * width:row * width + width]])
 		

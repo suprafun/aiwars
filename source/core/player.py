@@ -33,6 +33,22 @@ class Player(object):
 			self.__visibleTiles.append([])
 			for x in xrange(self.game.level.width()):
 				self.__visibleTiles[-1].append(0)
+		
+		
+		# Listeners should implement the following methods:
+		# onPlayerStartsTurn(player)
+		# onPlayerEndsTurn(player)
+		self.__listeners = []
+	#
+	
+	def addListener(self, listener):
+		if not listener in self.__listeners:
+			self.__listeners.append(listener)
+	#
+	
+	def removeListener(self, listener):
+		if listener in self.__listeners:
+			self.listeners.remove(listener)
 	#
 	
 	def addBuilding(self, building):
@@ -124,6 +140,9 @@ class Player(object):
 		self.__activeUnits = self.units[:]
 		self.__movedUnits = []
 		self.__finishedUnits = []
+		
+		for listener in self.__listeners:
+			listener.onPlayerStartsTurn(self)
 	#
 	
 	def moveUnit(self, unitID, route):
@@ -312,6 +331,9 @@ class Player(object):
 		self.__finishedUnits = self.units[:]
 		
 		self.game.playerEndsTurn(self)
+		
+		for listener in self.__listeners:
+			listener.onPlayerStartsTurn(self)
 		
 		return ACTION_RESULT_SUCCESS
 	#

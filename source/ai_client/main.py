@@ -65,6 +65,7 @@ class Main(object):
 	# Game-specific messages
 	def onStartTurn(self, message):
 		print 'Starting turn!'
+		self.gameClient.sendMessageToServer(CTS_END_TURN, '')
 		pass
 	#
 	

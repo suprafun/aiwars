@@ -41,14 +41,14 @@ class Main(object):
 		
 		# Listen for game-specific messages - the callbacks are wrapped in a small class that checks if the clients player is the active player, so the real callback will not be called
 		# if a client sends messages while it's not it's turn. The client will receive a SERVER_RESULT_NOT_YOUR_TURN message in that case.
-		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, ClientPlayerCheck(self.game, self.onClientMoveCommand))
-		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, ClientPlayerCheck(self.game, self.onClientUnloadCommand))
-		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, ClientPlayerCheck(self.game, self.onClientSupplySurroundingUnitsCommand))
-		self.gameServer.setCallbackForMessageType(CTS_ATTACK_UNIT, ClientPlayerCheck(self.game, self.onClientAttackUnitCommand))
-		self.gameServer.setCallbackForMessageType(CTS_BUILD_UNIT, ClientPlayerCheck(self.game, self.onClientBuildUnitCommand))
-		self.gameServer.setCallbackForMessageType(CTS_CAPTURE_BUILDING, ClientPlayerCheck(self.game, self.onClientCaptureBuildingCommand))
-		self.gameServer.setCallbackForMessageType(CTS_HIDE_UNIT, ClientPlayerCheck(self.game, self.onClientHideUnitCommand))
-		self.gameServer.setCallbackForMessageType(CTS_END_TURN, ClientPlayerCheck(self.game, self.onClientEndTurnCommand))
+		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, ClientPlayerCheck(self, self.onClientMoveCommand))
+		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, ClientPlayerCheck(self, self.onClientUnloadCommand))
+		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, ClientPlayerCheck(self, self.onClientSupplySurroundingUnitsCommand))
+		self.gameServer.setCallbackForMessageType(CTS_ATTACK_UNIT, ClientPlayerCheck(self, self.onClientAttackUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_BUILD_UNIT, ClientPlayerCheck(self, self.onClientBuildUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_CAPTURE_BUILDING, ClientPlayerCheck(self, self.onClientCaptureBuildingCommand))
+		self.gameServer.setCallbackForMessageType(CTS_HIDE_UNIT, ClientPlayerCheck(self, self.onClientHideUnitCommand))
+		self.gameServer.setCallbackForMessageType(CTS_END_TURN, ClientPlayerCheck(self, self.onClientEndTurnCommand))
 		
 		# Add players to the game:
 		for controller in self.playerControllers:
