@@ -20,6 +20,7 @@ class Tilemap:
 	
 	def addImage(self, image):
 		self.images.append(image)
+		return len(self.images) - 1
 	#
 	
 	def setTileSize(self, tileSize):
@@ -50,10 +51,11 @@ class Tilemap:
 		return len(self.tiles)
 	#
 	
-	def draw(self, screen):
+	def draw(self, screen, offset):
+		drawPos = self.position + offset
 		for y in xrange(self.height()):
 			for x in xrange(self.width()):
 				if self.tiles[y][x] != -1:
-					screen.blit(self.images[self.tiles[y][x]], (self.position.x + x * self.tileSize.x, self.position.y + y * self.tileSize.y))
+					screen.blit(self.images[self.tiles[y][x]], (drawPos.x + x * self.tileSize.x, drawPos.y + y * self.tileSize.y))
 	#
 #
