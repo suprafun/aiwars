@@ -27,6 +27,10 @@ class Tilemap:
 		self.tileSize = tileSize
 	#
 	
+	def getTileSize(self):
+		return self.tileSize
+	#
+	
 	def setSize(self, size, fillIndex = -1):
 		while self.height() < size.y:
 			self.tiles.append([])

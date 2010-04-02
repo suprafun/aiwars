@@ -6,9 +6,15 @@ from levelProcessor import *
 
 
 class GameScreen:
-	def __init__(self, game, imageCache):
+	def __init__(self, game, imageCache, screenDimension):
 		self.game = game
 		self.imageCache = imageCache
+		self.screenDimension = screenDimension
+		
+		self.cameraMouseOffset = Point(0, 0)
+		self.rightMouseButtonDown = False
+		
+		self.drawGrid = True
 		
 		self.camera = Point(0, 0)
 		
@@ -19,7 +25,8 @@ class GameScreen:
 	#
 	
 	def onKeyDown(self, key):
-		pass
+		if key == ord('g'):
+			self.drawGrid = not self.drawGrid
 	#
 	
 	def onKeyUp(self, key):
@@ -27,18 +34,23 @@ class GameScreen:
 	#
 	
 	def onMouseDown(self, button, position):
-		#print 'down', button
-		pass
+		if button == 3: # Right mouse button, TODO: Look for pygame constants for this?
+			self.cameraMouseOffset.x = self.camera.x - position[0]
+			self.cameraMouseOffset.y = self.camera.y - position[1]
+			self.rightMouseButtonDown = True
 	#
 	
 	def onMouseUp(self, button, position):
-		#print 'up', button
-		pass
+		if button == 3:
+			self.rightMouseButtonDown = False
 	#
 	
 	def onMouseMove(self, position):
-		#print 'move', position
-		pass
+		if self.rightMouseButtonDown:
+			self.camera.x = position[0] + self.cameraMouseOffset.x
+			self.camera.y = position[1] + self.cameraMouseOffset.y
+			
+			self.clampCameraToLevel()
 	#
 	
 	def update(self):
@@ -48,9 +60,28 @@ class GameScreen:
 	def draw(self, screen):
 		self.baseTilemap.draw(screen, self.camera)
 		self.spriteCollection.draw(screen, self.camera)
-		self.gridTilemap.draw(screen, self.camera)
+		
+		if self.drawGrid:
+			self.gridTilemap.draw(screen, self.camera)
 	#
 	
+	
+	def clampCameraToLevel(self):
+		margin = 5
+		
+		levelWidth = self.baseTilemap.width() * self.baseTilemap.getTileSize().x + margin
+		levelHeight = self.baseTilemap.height() * self.baseTilemap.getTileSize().y + margin
+		
+		if levelWidth <= self.screenDimension[0]:
+			self.camera.x = (self.screenDimension[0] - levelWidth) / 2
+		else:
+			self.camera.x = min(margin, max(self.screenDimension[0] - levelWidth, self.camera.x))
+		
+		if levelHeight <= self.screenDimension[1]:
+			self.camera.y = (self.screenDimension[1] - levelHeight) / 2
+		else:
+			self.camera.y = min(margin, max(self.screenDimension[1] - levelHeight, self.camera.y))
+	#
 	
 	def updateLevel(self):
 		self.baseTilemap = Tilemap()
@@ -68,48 +99,7 @@ class GameScreen:
 		
 		self.gridTilemap.addImage(self.imageCache.getImage('../textures/terrain/grid_lines.png'))
 		self.gridTilemap.setSize(Point(self.game.level.width(), self.game.level.height()), 0)
+		
+		self.clampCameraToLevel()
 	#
-#
-
-def matchPattern(pattern, images):
-	matches = []
-	for i in xrange(len(images)):
-		for j in xrange(len(pattern)):
-			if images[i][j] != None and images[i][j] != pattern[j]:
-				break
-		else:
-			matches.append(i)
-	if len(matches) == 0:
-		return None
-	
-	bestMatch = matches[0]
-	bestMatchCount = images[bestMatch].count(None)
-	for match in matches[1:]:
-		matchCount = images[match].count(None)
-		if matchCount < bestMatchCount:
-			bestMatch = match
-			bestMatchCount = matchCount
-	return bestMatch
-#
-
-def processLevel(level, images):
-	# Create a border around the levels tilemap, to circumvent boundary checks
-	tiles = level.terrain[:]
-	for y in xrange(len(tiles)):
-		tiles[y] = level.terrain[y][:]
-		tiles[y].insert(0, tiles[y][0])
-		tiles[y].append(tiles[y][-1])
-	tiles.insert(0, tiles[0][:])
-	tiles.append(tiles[-1][:])
-	
-	# Do actual pattern matching
-	for y in xrange(level.height()):
-		for x in xrange(level.width()):
-			pattern = []
-			for oy in xrange(3):
-				for ox in xrange(3):
-					pattern.append(tiles[y + oy][x + ox])
-			# Do pattern matching!
-			print prints[matchPattern(pattern, images)],
-		print ''
 #

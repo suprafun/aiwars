@@ -30,7 +30,7 @@ class Main:
 		self.gameDatabase = GameDatabase()
 		self.game = Game(self.gameDatabase)
 		
-		self.gameScreen = GameScreen(self.game, self.imageCache)
+		self.gameScreen = GameScreen(self.game, self.imageCache, self.screenDimension)
 		self.running = False
 		
 		self.gameClient = GameClient()
@@ -78,6 +78,7 @@ class Main:
 	#
 	
 	def draw(self, screen):
+		screen.fill((255, 255, 255))
 		self.gameScreen.draw(screen)
 		pygame.display.flip()
 	#
