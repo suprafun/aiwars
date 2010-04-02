@@ -6,6 +6,7 @@ class GameData(object):
 		self.fogOfWar = fogOfWar
 		
 		# TODO: Add more game data?
+		# TODO: Add turn time limit!!!
 	#
 	
 	# Serialization

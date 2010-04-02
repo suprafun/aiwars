@@ -8,6 +8,8 @@ class Tilemap:
 		
 		self.images = []
 		self.tiles = []
+		
+		self.visible = True
 	#
 	
 	def getTile(self, position):
@@ -56,6 +58,9 @@ class Tilemap:
 	#
 	
 	def draw(self, screen, offset):
+		if not self.visible:
+			return
+		
 		drawPos = self.position + offset
 		for y in xrange(self.height()):
 			for x in xrange(self.width()):

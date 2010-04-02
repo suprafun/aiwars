@@ -4,6 +4,7 @@ from core.point import *
 from tilemap import *
 from spriteCollection import *
 from levelProcessor import *
+from textBox import *
 
 
 class GameScreen:
@@ -24,19 +25,22 @@ class GameScreen:
 		                        pygame.constants.K_RIGHT: Point(-1, 0)}
 		self.arrowKeyMovementSpeed = 32
 		
-		self.drawGrid = True
-		
 		self.camera = Point(0, 0)
 		
 		# Level visualization
+		self.tileSize = Point(32, 32)
 		self.baseTilemap = Tilemap()
 		self.gridTilemap = Tilemap()
 		self.spriteCollection = SpriteCollection()
+		
+		self.tooltip = TextBox(Point(0, 0), Point(0, 0), '', fontsize = 14, color = (255, 255, 225))
+		self.tooltip.visible = False
+		#self.tooltip.label.antiAliasing = False
 	#
 	
 	def onKeyDown(self, key):
 		if key == ord('g'):
-			self.drawGrid = not self.drawGrid
+			self.gridTilemap.visible = not self.gridTilemap.visible
 		elif self.arrowKeyState.has_key(key):
 			self.arrowKeyState[key] = True
 	#
@@ -72,14 +76,15 @@ class GameScreen:
 				if self.arrowKeyState[key]:
 					self.camera += self.arrowKeyMovement[key] * self.arrowKeyMovementSpeed
 			self.clampCameraToLevel()
+		
+		self.updateToolTip()
 	#
 	
 	def draw(self, screen):
 		self.baseTilemap.draw(screen, self.camera)
 		self.spriteCollection.draw(screen, self.camera)
-		
-		if self.drawGrid:
-			self.gridTilemap.draw(screen, self.camera)
+		self.gridTilemap.draw(screen, self.camera)
+		self.tooltip.draw(screen, Point(0, 0))
 	#
 	
 	
@@ -112,7 +117,7 @@ class GameScreen:
 		                       '../textures/terrain/tiles', \
 		                       self.spriteCollection, \
 		                       '../textures/terrain/sprites', \
-		                       Point(32, 32), \
+		                       self.tileSize, \
 		                       self.imageCache, \
 		                       self.game.level, \
 		                       self.game.gameDatabase)
@@ -120,5 +125,25 @@ class GameScreen:
 		self.gridTilemap.addImage(self.imageCache.getImage('../textures/terrain/grid_lines.png'))
 		self.gridTilemap.addImage(self.imageCache.getImage('../textures/terrain/fog_of_war.png'))
 		self.gridTilemap.setSize(Point(self.game.level.width(), self.game.level.height()), 0)
+	#
+	
+	def updateToolTip(self):
+		mousePosition = Point(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+		tileCoordinates = self.getTileAtScreenPosition(mousePosition)
+		if tileCoordinates.x >= 0 and tileCoordinates.y >= 0 and tileCoordinates.x < self.game.level.width() and tileCoordinates.y < self.game.level.height():
+			terrainType = self.game.level.getTerrainType(tileCoordinates)
+			self.tooltip.label.text = terrainType.name + ' - ' + str(terrainType.cover * 10) + ' % cover'
+			#self.tooltip.label.text = terrainType.name + ' - ' + ''.ljust(terrainType.cover, '*')
+			self.tooltip.label.refresh()
+			self.tooltip.resizeToLabel()
+			self.tooltip.position = mousePosition - Point(0, self.tooltip.height() + 5)
+			self.tooltip.visible = True
+		else:
+			self.tooltip.visible = False
+	#
+	
+	def getTileAtScreenPosition(self, screenPosition):
+		worldPosition = screenPosition - self.camera
+		return Point(worldPosition.x / self.tileSize.x, worldPosition.y / self.tileSize.y)
 	#
 #

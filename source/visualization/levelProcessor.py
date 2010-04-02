@@ -19,7 +19,7 @@ __baseTiles = {'Road': 5, \
                'Base': 0, \
                'Headquarters': 0, \
                'Airport': 0, \
-               'Dock': 3, \
+               'Port': 3, \
                'Impassable': 6}
 # NOTE: Bridge type needs special handling?!?
 

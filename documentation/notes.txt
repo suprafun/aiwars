@@ -79,15 +79,31 @@ action phase.
 
 Movement action: unitID, route (route starts one tile next to unit and ends at destination, must be valid route) --> can be trapped!
 NOTE: Loading a unit into another unit is done by moving it on top of that unit! If the unit at the destination can not transport
-that unit type, or if it is full, the action fill fail in it's entirity.
+that unit type, or if it is full, the action will fail in it's entirity.
+NOTE: Combining units is also done by moving them on top of each other! Loading has priority, if such a situation ever occurs,
+as units should naturally not be able to transport their own type!
 
 
 Unload action: unitID, destination (unit has to be loaded in a unit that's next to the destination, destination must be free)
 Supply surrounding units action: unitID (unit must be able to supply, must at least be one friendly unit in a neighboring tile)
 Attack action: unitID, targetID (target unit has to be in range of unit)
-Combine units action: unitID, targetID (unit has to be next to target, target has to be damaged, must be of same type)
 Build unit action: buildingID, unitTypeID (building must be able to build unit type, player must have sufficient funds, building must not be occupied)
 Capture building action: unitID (unit must be able to capture, unit must stand on top of building, building must not be owned by player)
 Hide unit: unitID (unit must be able to hide)
 
 All actions will be replied to with a 'failed' confirmation message if the above prerequisites are not met.
+
+
+
+
+What does a situation update tell? Should I go for a diff-styled approach? Might as well just send all visible unit data...
+
+Always send all player units and buildings!
+In fog-of-war, only send visible enemy units and buildings - do not send loaded units, hide loaded information.
+
+In normal mode, just send all units, all data.
+
+Oh, situation update should also tell the player how much money he has.
+
+
+A full situation update, towards observers, should tell them how much money every player has.

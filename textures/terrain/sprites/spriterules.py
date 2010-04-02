@@ -38,3 +38,11 @@ rules.addRule('Base', 'factory_1.png', ( 0,  0, 32, 32))
 # Headquarters
 rules.setSpriteCount('Headquarters', 1, 1)
 rules.addRule('Headquarters', 'headquarters_1.png', ( 0, 16, 32, 32))
+
+# Airport
+rules.setSpriteCount('Airport', 1, 1)
+rules.addRule('Airport', 'airport_1.png', ( 0,  0, 32, 32))
+
+# Port
+rules.setSpriteCount('Port', 1, 1)
+rules.addRule('Port', 'port_1.png', ( 0,  0, 32, 32))

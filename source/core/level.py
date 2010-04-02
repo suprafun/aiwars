@@ -94,7 +94,10 @@ class Level(object):
 	#
 	
 	def width(self):
-		return len(self.terrain[0])
+		if self.height() == 0:
+			return 0
+		else:
+			return len(self.terrain[0])
 	#
 	
 	def height(self):
