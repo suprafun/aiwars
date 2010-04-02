@@ -1,7 +1,7 @@
 
 
 class UnitType:
-	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False, maxTransportSlots = 0):
+	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False):
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
 		self.cost = cost                                # How expensive this unit type is to construct.
 		self.movementPoints = movementPoints            # How many movement points this unit has (some tiles take cost points to cross than others).
@@ -24,10 +24,10 @@ class UnitType:
 		self.canCapture = canCapture                    # Can this unit capture buildings?
 		
 		self.transports = {}                            # The unit types that can be transported, and how much room they occupy.
-		self.maxTransportSlots = maxTransportSlots      # Maximum transport capacity (some units can take up multiple slots).
+		self.maxTransportSlots = 0                      # Maximum transport capacity (some units can take up multiple slots).
 	#
 	
-	def setDamageAgainst(self, unitType, primaryDamage, secondaryDamage)
+	def setDamageAgainst(self, unitType, primaryDamage, secondaryDamage):
 		self.primaryDamage[unitType] = primaryDamage
 		self.secondaryDamage[unitType] = secondaryDamage
 	#
@@ -36,12 +36,16 @@ class UnitType:
 		self.movementCostOverride[terrainType] = movementCost
 	#
 	
-	def overrideSightForTerrainType(self, terrainType, sightOverride):
+	def overrideVisionForTerrainType(self, terrainType, sightOverride):
 		self.visionOverride[terrainType] = sightOverride
 	#
 	
 	def canTransport(self, unitType, slots):
 		self.transports[unitType] = slots
+	#
+	
+	def setMaximumTransportSlots(self, maxTransportSlots):
+		self.maxTransportSlots = maxTransportSlots
 	#
 	
 	

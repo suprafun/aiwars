@@ -1,0 +1,40 @@
+server:
+
+maps: playing fields
+databases: unit, building and terrain rules
+
+
+The server can be asked for a list of map names and a list of database names, and it can be asked to provide
+map or database data for a given name.
+
+
+server provides interface for client (CLIENT -> SERVER):
+
+-- pre-game commands --
+connect() -> connects this client with the server
+set_mode(mode) -> mode is either 'observer' or 'player'
+set_name(name) -> sets this clients name
+end_turn() -> ends the turn of this client early
+
+-- game commands --
+move_unit(unit_id, route)
+load_unit(unit_id, target_id, route)
+unload_unit(unit_id, destination)
+supply_surrounding_units(unit_id, route)
+attack_unit(unit_id, target_id, route)
+combine_units(unit_id, target_id, route)
+build_unit(unit_type_id, building_id)
+capture_building(unit_type_id, route)
+end_turn()
+
+
+client provides interface for server (SERVER -> CLIENT):
+
+-- pre-game commands --
+send_map_data() -> sends the chosen map data to the client
+send_database_data() -> sends the unit/building/terrain data to the client
+game_starts() -> signals a game start
+
+-- game commands --
+turn_starts() -> it's time for this client to play his turn
+turn_ends() -> time's up for this client, his turn has ended
