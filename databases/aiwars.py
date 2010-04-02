@@ -14,9 +14,11 @@ reef                = TerrainType('Reef',          2,  1, hideUnits = True)
 cityTerrain         = TerrainType('City',          3,  1)
 baseTerrain         = TerrainType('Base',          3,  1)
 headquartersTerrain = TerrainType('Headquarters',  4,  1)
+airportTerrain      = TerrainType('Airport',       3,  1)
+dockTerrain         = TerrainType('Dock',          3,  1)
 
 # Add the terrain types to the database
-database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, shoal, sea, reef, cityTerrain, baseTerrain, headquartersTerrain])
+database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, shoal, sea, reef, cityTerrain, baseTerrain, headquartersTerrain, airportTerrain, dockTerrain])
 
 
 #================================================================================
@@ -97,9 +99,11 @@ for i in xrange(len(database.unitTypes)):
 city         = BuildingType('City',           1000)
 base         = BuildingType('Base',           1000)
 headquarters = BuildingType('Headquarters',   1000)
+airport      = BuildingType('Airport',        1000)
+dock         = BuildingType('Dock',           1000)
 
 # Add the building types to the database
-database.buildingTypes.extend([city, base, headquarters])
+database.buildingTypes.extend([city, base, headquarters, airport, dock])
 
 # Bases can build ground units
 for unitType in [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rocket]:
@@ -109,3 +113,5 @@ for unitType in [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTa
 cityTerrain.buildingType         = city
 baseTerrain.buildingType         = base
 headquartersTerrain.buildingType = headquarters
+airportTerrain.buildingType      = airport
+dockTerrain.buildingType         = dock
