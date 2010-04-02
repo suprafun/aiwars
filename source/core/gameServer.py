@@ -9,7 +9,7 @@ class GameServer:
 		self.server.listen(5)
 		
 		self.__waitForConnections = False
-		self.__clients = []
+		self.clients = []
 		self.__nextClientID = 0
 		
 		self.__onClientConnected = None
@@ -26,20 +26,24 @@ class GameServer:
 	# A blocking call, which will call the onClientConnect callback whenever a new client connects.
 	# The callback will be passed a GameServerClientData object.
 	# Call stopListeningForConnections() from within the callback to make this function return.
-	def listenForConnections(self, onClientConnected):
+	def listenForConnections(self, onClientConnected, interval):
 		self.__waitForConnections = True
 		self.__onClientConnected = onClientConnected
 		
+		self.server.settimeout(interval)
 		while self.__waitForConnections:
-			(connection, address) = self.server.accept()
-			
-			clientData = ClientData(self.__getNextClientID(), connection, address)
-			
-			self.__clients.append(clientData)
-			if self.__onClientConnected != None:
-				self.__onClientConnected(clientData)
-			
-			clientData.listenForData(self.__onMessageReceivedFromClient)
+			try:
+				(connection, address) = self.server.accept()
+			except socket.timeout:
+				pass
+			else:
+				clientData = ClientData(self.__getNextClientID(), connection, address)
+				
+				self.clients.append(clientData)
+				if self.__onClientConnected != None:
+					self.__onClientConnected(clientData)
+				
+				clientData.listenForData(self.__onMessageReceivedFromClient)
 	#
 	
 	def __getNextClientID(self):
@@ -66,7 +70,7 @@ class GameServer:
 	#
 	
 	def __getClientByID(self, id):
-		for clientData in self.__clients:
+		for clientData in self.clients:
 			if clientData.id == id:
 				return clientData
 		return None

@@ -2,7 +2,6 @@ import sys
 from core.game import *
 from core.gameDatabase import *
 from core.gameClient import *
-
 from core.messageTypes import *
 from core.serialization import *
 

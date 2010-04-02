@@ -13,6 +13,29 @@ class Point(object):
 		self.y = other.y
 	#
 	
+	# + operator
+	def __add__(self, other):
+		return Point(self.x + other.x, self.y + other.y)
+	#
+	
+	# - operator
+	def __sub__(self, other):
+		return Point(self.x - other.x, self.y - other.y)
+	#
+	
+	# += operator
+	def __radd__(self, other):
+		self.x += other.x
+		self.y += other.y
+	#
+	
+	# -= operator
+	def __rsub__(self, other):
+		self.x -= other.x
+		self.y -= other.y
+	#
+	
+	# == operator
 	def __eq__(self, other):
 		return self.x == other.x and self.y == other.y
 	#

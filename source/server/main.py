@@ -2,7 +2,6 @@ import sys
 from core.game import *
 from core.gameDatabase import *
 from core.gameServer import *
-
 from core.messageTypes import *
 from core.serialization import *
 
@@ -20,7 +19,7 @@ class Main(object):
 		self.gameServer.setCallbackForMessageType(CTS_SET_NAME, self.onClientSetsName)
 		self.gameServer.setCallbackForMessageType(CTS_READY, self.onClientReady)
 		
-		self.gameServer.listenForConnections(self.onClientConnected)
+		self.gameServer.listenForConnections(self.onClientConnected, 0.5)
 	#
 	
 	def onClientConnected(self, client):

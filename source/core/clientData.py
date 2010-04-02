@@ -15,6 +15,8 @@ class ClientData:
 		
 		self.__listenForData = False
 		self.__dataBuffer = ''
+		
+		self.connection.setblocking(1)
 	#
 	
 	# Start listening for data from this clients connection. Will call the onDataReceived callback when data comes in.

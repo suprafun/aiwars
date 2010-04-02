@@ -2,7 +2,7 @@ from serialization import *
 
 
 class UnitType(object):
-	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False, canHide = False):
+	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canActAfterMoving = True, canRetaliate = True, canSupply = False, canCapture = False, canHide = False):
 		self.gameDatabase = None
 		
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
@@ -17,7 +17,7 @@ class UnitType(object):
 		
 		self.minRange = minRange                        # Minimum range (1 for assault units, usually a little higher for artillery)
 		self.maxRange = maxRange                        # Maximum range (1 for assault units, usually much higher for artillery)
-		self.canFireAfterMove = canFireAfterMove	    # Whether this unit can fire after moving. Usually false for artillery.
+		self.canActAfterMoving = canActAfterMoving	    # Whether this unit can perform actions after moving. Attacking, supplying, etc, are all actions. Usually False for artillery.
 		self.canRetaliate = canRetaliate                # Some units fire back after being attacked. Usually only assault units.
 		
 		self.movementCostOverride = {}                  # Override cost for specific terrain types. For example, aerial units can override all terrain types with a cost of 1.
@@ -88,7 +88,7 @@ class UnitType(object):
 		                self.maxAmmunition, \
 		                self.minRange, \
 		                self.maxRange, \
-		                self.canFireAfterMove, \
+		                self.canActAfterMoving, \
 		                self.canRetaliate, \
 		                self.__dictionaryToList(self.movementCostOverride, self.gameDatabase.getIndexOfTerrainType), \
 		                self.__dictionaryToList(self.visionOverride, self.gameDatabase.getIndexOfTerrainType), \
@@ -117,7 +117,7 @@ class UnitType(object):
 		 self.maxAmmunition, \
 		 self.minRange, \
 		 self.maxRange, \
-		 self.canFireAfterMove, \
+		 self.canActAfterMoving, \
 		 self.canRetaliate, \
 		 self.movementCostOverride, \
 		 self.visionOverride, \

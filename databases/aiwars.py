@@ -10,7 +10,7 @@ river               = TerrainType('River',         0,  99)
 bridge              = TerrainType('Bridge',        0,  1)
 shoal               = TerrainType('Shoal',         0,  1)
 sea                 = TerrainType('Sea',           0,  99)
-reef                = TerrainType('Reef',          2,  99, hideUnits = True)
+reef                = TerrainType('Reef',          1,  99, hideUnits = True)
 cityTerrain         = TerrainType('City',          3,  1)
 baseTerrain         = TerrainType('Base',          3,  1)
 headquartersTerrain = TerrainType('Headquarters',  4,  1)
@@ -34,19 +34,23 @@ antiAir          = UnitType('Anti-Air',          8000,   6,  2,  9)
 tank             = UnitType('Tank',              7000,   6,  3,  9)
 mediumTank       = UnitType('Medium Tank',      16000,   5,  1,  8)
 heavyTank        = UnitType('Heavy Tank',       22000,   6,  1,  9)
-artillery        = UnitType('Artillery',         6000,   5,  1,  9, minRange = 2, maxRange = 3, canFireAfterMove = False, canRetaliate = False)
-rockets          = UnitType('Rockets',          15000,   5,  1,  6, minRange = 3, maxRange = 5, canFireAfterMove = False, canRetaliate = False)
-missiles         = UnitType('Missiles',         12000,   4,  5,  6, minRange = 3, maxRange = 5, canFireAfterMove = False, canRetaliate = False)
+artillery        = UnitType('Artillery',         6000,   5,  1,  9, minRange = 2, maxRange = 3, canActAfterMoving = False, canRetaliate = False)
+rockets          = UnitType('Rockets',          15000,   5,  1,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
+missiles         = UnitType('Missiles',         12000,   4,  5,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
 
 fighter          = UnitType('Fighter',          20000,   9,  2,  9)
 bomber           = UnitType('Bomber',           22000,   7,  2,  9)
 battleCopter     = UnitType('Battle copter',     9000,   6,  3,  6)
 transportCopter  = UnitType('Transport copter',  5000,   6,  2,  0)
 
-battleShip       = UnitType('Battleship',       28000,   5,  2,  9, minRange = 2, maxRange = 6, canFireAfterMove = False, canRetaliate = False)
+battleShip       = UnitType('Battleship',       28000,   5,  2,  9, minRange = 2, maxRange = 6, canActAfterMoving = False, canRetaliate = False)
 cruiser          = UnitType('Cruiser',          18000,   6,  3,  9)
 lander           = UnitType('Lander',           12000,   6,  1,  0)
 sub              = UnitType('Sub',              20000,   5,  5,  6, canHide = True)
+
+groundUnits = [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets, missiles]
+aerialUnits = [fighter, bomber, battleCopter, transportCopter]
+navalUnits = [battleShip, cruiser, lander, sub]
 
 # Add the unit types to the database
 database.unitTypes.extend([infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets, missiles, \
@@ -57,11 +61,13 @@ database.unitTypes.extend([infantery, mech, recon, apc, antiAir, tank, mediumTan
 infantery.overrideVisionForTerrainType(mountain, 4)
 mech.overrideVisionForTerrainType(mountain, 4)
 
-# Only infantery can cross mountains and rivers - and mechs are faster on mountains than normal infantery
+# Only infantery can cross mountains and rivers - and mechs are faster on mountains and rivers than normal infantery. All infantery is relatively fast in forests.
 infantery.overrideMovementCostForTerrainType(mountain, 2)
 infantery.overrideMovementCostForTerrainType(river, 1)
+infantery.overrideMovementCostForTerrainType(forest, 1)
 mech.overrideMovementCostForTerrainType(mountain, 1)
 mech.overrideMovementCostForTerrainType(river, 1)
+mech.overrideMovementCostForTerrainType(forest, 1)
 
 # Wheeled units have more trouble traveling across plains and forested ground
 recon.overrideMovementCostForTerrainType(plains, 2)
@@ -72,12 +78,12 @@ rockets.overrideMovementCostForTerrainType(plains, 2)
 rockets.overrideMovementCostForTerrainType(forest, 3)
 
 # All flying units have a movement cost of 1 for every tile
-for unitType in [fighter, bomber, battleCopter, transportCopter]:
+for unitType in aerialUnits:
 	for terrainType in database.terrainTypes:
 		unitType.overrideMovementCostForTerrainType(terrainType, 1)
 		
 # Naval units can't cross land - and only the lander can land on shoal
-for unitType in [battleShip, cruiser, lander, sub]:
+for unitType in navalUnits:
 	for terrainType in database.terrainTypes:
 		unitType.overrideMovementCostForTerrainType(terrainType, 99)
 	unitType.overrideMovementCostForTerrainType(sea, 1)
@@ -94,7 +100,7 @@ transportCopter.canTransport(mech, 1)
 
 # Landers can carry 2 ground units
 lander.setMaximumTransportSlots(2)
-for unitType in [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets, missiles]:
+for unitType in groundUnits:
 	lander.canTransport(unitType, 1)
 
 # Cruisers can carry 2 copters
@@ -160,25 +166,25 @@ for i in xrange(len(database.unitTypes)):
 # Building types
 
 # Name, income per turn
-city         = BuildingType('City',           1000)
-base         = BuildingType('Base',           1000)
-headquarters = BuildingType('Headquarters',   1000)
-airport      = BuildingType('Airport',        1000)
-dock         = BuildingType('Dock',           1000)
+city         = BuildingType('City',           1000, canRepairUnitTypes = groundUnits)
+base         = BuildingType('Base',           1000, canRepairUnitTypes = groundUnits)
+headquarters = BuildingType('Headquarters',   1000, canRepairUnitTypes = groundUnits, critical = True)
+airport      = BuildingType('Airport',        1000, canRepairUnitTypes = aerialUnits)
+dock         = BuildingType('Dock',           1000, canRepairUnitTypes = navalUnits)
 
 # Add the building types to the database
 database.buildingTypes.extend([city, base, headquarters, airport, dock])
 
 # Bases can build ground units
-for unitType in [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets]:
+for unitType in groundUnits:
 	base.canBuild(unitType)
 
 # Airports can build aerial units
-for unitType in [fighter, bomber, battleCopter, transportCopter]:
+for unitType in aerialUnits:
 	airport.canBuild(unitType)
 
 # Docks can build naval units
-for unitType in [battleShip, cruiser, lander, sub]:
+for unitType in navalUnits:
 	dock.canBuild(unitType)
 
 # Associate buildings with their respective terrain types

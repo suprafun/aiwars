@@ -72,4 +72,22 @@ and so counts towards it's size.
 
 NOTE: Game commands are going to change a bit: instead of embedding a movement command into others, they are now separated.
 So a unit that attacks another will typically send two commands: one to move towards it's target,
-and another command for the actual attack.
+and another command for the actual attack. Units will be handled like that, too: they have two phases, a movement and an
+action phase.
+
+
+
+Movement action: unitID, route (route starts one tile next to unit and ends at destination, must be valid route) --> can be trapped!
+NOTE: Loading a unit into another unit is done by moving it on top of that unit! If the unit at the destination can not transport
+that unit type, or if it is full, the action fill fail in it's entirity.
+
+
+Unload action: unitID, destination (unit has to be loaded in a unit that's next to the destination, destination must be free)
+Supply surrounding units action: unitID (unit must be able to supply, must at least be one friendly unit in a neighboring tile)
+Attack action: unitID, targetID (target unit has to be in range of unit)
+Combine units action: unitID, targetID (unit has to be next to target, target has to be damaged, must be of same type)
+Build unit action: buildingID, unitTypeID (building must be able to build unit type, player must have sufficient funds, building must not be occupied)
+Capture building action: unitID (unit must be able to capture, unit must stand on top of building, building must not be owned by player)
+Hide unit: unitID (unit must be able to hide)
+
+All actions will be replied to with a 'failed' confirmation message if the above prerequisites are not met.

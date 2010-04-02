@@ -6,14 +6,13 @@ CTS_SET_NAME                  = chr(2)
 CTS_READY                     = chr(3)
 
 CTS_MOVE_UNIT                 = chr(4)
-CTS_LOAD_UNIT                 = chr(5)
-CTS_UNLOAD_UNIT               = chr(6)
-CTS_SUPPLY_SURROUNDING_UNITS  = chr(7)
-CTS_ATTACK_UNIT               = chr(8)
-CTS_COMBINE_UNITS             = chr(9)
-CTS_BUILD_UNIT                = chr(10)
-CTS_CAPTURE_BUILDING          = chr(11)
-CTS_END_TURN                  = chr(12)
+CTS_UNLOAD_UNIT               = chr(5)
+CTS_SUPPLY_SURROUNDING_UNITS  = chr(6)
+CTS_ATTACK_UNIT               = chr(7)
+CTS_BUILD_UNIT                = chr(8)
+CTS_CAPTURE_BUILDING          = chr(9)
+CTS_HIDE_UNIT                 = chr(10)
+CTS_END_TURN                  = chr(11)
 
 
 # Server to client

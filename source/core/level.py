@@ -22,7 +22,7 @@ class Level(object):
 	
 	def loadFromFile(self, filename):
 		self.reset()
-		execfile(filename, {'level': self})
+		execfile(filename, {'level': self, 'Point': Point})
 	#
 	
 	def setTileData(self, tileData):
@@ -52,13 +52,20 @@ class Level(object):
 		return len(self.playersData)
 	#
 	
-	def getTerrainType(self, x, y):
-		return self.terrain[y][x]
+	def getTerrainType(self, position):
+		return self.terrain[position.y][position.x]
 	#
 	
-	def getBuildingAt(self, x, y):
+	def getBuildingByID(self, buildingID):
 		for building in self.buildings:
-			if building.position.x == x and building.position.y == y:
+			if building.id == buildingID:
+				return building
+		return None
+	#
+	
+	def getBuildingAtPosition(self, position):
+		for building in self.buildings:
+			if building.position.x == position.x and building.position.y == position.y:
 				return building
 		return None
 	#
@@ -112,6 +119,7 @@ class Level(object):
 		return readBytesCount
 	#
 	
+	# For debugging purposes, gives a string visualization of the map.
 	def toString(self):
 		strrep = ''
 		for row in self.terrain:

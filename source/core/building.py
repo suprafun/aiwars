@@ -16,6 +16,18 @@ class Building(object):
 		return self.type.canBuild(unitType)
 	#
 	
+	def canRepair(self, unitType):
+		return self.type.canRepair(unitType)
+	#
+	
+	def repairAmount(self):
+		return self.type.repairAmount
+	#
+	
+	def isCritical(self):
+		return self.type.critical
+	#
+	
 	#Some units can capture buildings. This function returns true if the building has been fully captured.
 	def capture(self, amount):
 		self.capturePoints = max(0, self.capturePoints - amount)

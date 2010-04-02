@@ -3,12 +3,12 @@ from serialization import *
 
 
 class Unit(object):
-	# Creates a new unit, of a given type, at the specified position. Units keep a reference to the Field instance that they're located on, in order to check their surroundings.
-	def __init__(self, gameDatabase, type, id, position, field, player):
+	# Creates a new unit, of a given type, at the specified position. Units keep a reference to the level instance that they're located on, in order to check their surroundings.
+	def __init__(self, gameDatabase, type, id, position, level, player):
 		self.gameDatabase = gameDatabase
 		self.type = type
 		self.id = id
-		self.field = field
+		self.level = level
 		self.player = player
 		
 		self.hitpoints = self.type.maxHitpoints
@@ -19,16 +19,25 @@ class Unit(object):
 		self.carriedBy = None
 		
 		self.hiding = False
+		
+		self.captureTarget = None
 	#
 	
 	# Returns the current vision range, taking terrain type into account.
 	def currentVision(self):
-		return self.type.visionOn(self.field.getTerrainType(self.position))
+		return self.type.visionOn(self.level.getTerrainType(self.position))
 	#
 	
 	# Returns the movement cost for the given terrain type.
 	def movementCostFor(self, terrainType):
 		return self.type.movementCostFor(terrainType)
+	#
+	
+	# Move to the specified position, instantly (route checking is up to the player). Also moves all units that are being transported.
+	def moveTo(self, position):
+		self.position.set(position)
+		for unit in self.transports:
+			unit.moveTo(position)
 	#
 	
 	# Returns True if this unit is currently transporting one or more units.
@@ -49,9 +58,24 @@ class Unit(object):
 		return self.type.transports.contains(unitType) and self.freeTransportSlots >= self.type.transports[unitType]
 	#
 	
+	# Returns True if this unit is not at full health.
+	def isDamaged(self):
+		return self.hitpoints < self.type.maxHitpoints
+	#
+	
 	# Returns the repair cost for the specified number of hitpoints. This function does not take the current and maximum number of hitpoints into account.
 	def repairCost(self, amount):
 		return int(self.type.cost / 10) * amount
+	#
+	
+	# Returns how much hitpoints can actually be repaired, taking the current and maximum number of hitpoints into account.
+	def actualRepairAmount(self, amount):
+		return min(amount, self.type.maxHitpoints - self.hitpoints)
+	#
+	
+	# Returns true if this unit can perform actions after moving.
+	def canActAfterMoving(self):
+		return self.type.canActAfterMoving
 	#
 	
 	# Returns True if this unit can capture buildings.
@@ -75,35 +99,53 @@ class Unit(object):
 		if self.canLoad(unit.type):
 			self.loadedUnits.append(unit)
 			unit.carriedBy = self
+			unit.moveTo(self.position)
 	#
 	
 	# Unload the specified unit at the given destination.
 	def unloadUnit(self, unit, destination):
 		if unit.carriedBy is self and manhattanDistance(self.position, destination) == 1:
 			self.loadedUnits.remove(unit)
-			unit.position.set(destination)
+			unit.moveTo(destination)
 			unit.carriedBy = None
 	#
 	
-	# Fully restore this units ammunition supply.
-	def supplyWithAmmunition(self):
+	# Returns true if this unit is being transported by another unit.
+	def isLoaded(self):
+		return self.carriedBy != None
+	#
+	
+	# Fully restores this units ammunition supply.
+	def resupply(self):
 		self.ammunition = self.type.maxAmmunition
 	#
 	
 	# Repairs this unit and returns the number of hitpoints that were actually repaired. A unit can not be repaired beyond it's maximum number of hitpoints.
 	def repair(self, amount):
-		previousHitpoints = self.hitpoints
-		self.hitpoints = min(self.type.maxHitpoints, self.type.hitpoints + amount)
-		return self.hitpoints - previousHitpoints
+		actualRepairAmount = self.actualRepairAmount(amount)
+		self.hitpoints += actualRepairAmount
+		return actualRepairAmount
 	#
 	
-	# Attack the specified unit, if possible. If the unit was successfully attacked, it will retaliate, if possible.
-	def attackUnit(self, target, didMove):
-		if didMove and not self.type.canFireAfterMove:
+	# Returns true if this unit can attack the specified unit. Checks if this unit can fire after moving, if the target unit is within range
+	# and whether or not this unit can actually damage the target.
+	def canAttackUnit(self, target, moved):
+		if moved and not self.type.canFireAfterMove:
 			return False
 		
-		if self.unitWithinRange(target):
-			self.__fireAtTarget(target)
+		if not self.unitWithinRange(target):
+			return False
+		
+		primaryDamage = self.type.primaryDamageAgainst(target.type)
+		secondaryDamage = self.type.secondaryDamageAgainst(target.type)
+		return (self.ammunition > 0 and primaryDamage > 0) or (secondaryDamage > 0)
+	#
+	
+	# Attack the specified unit. Call canAttackUnit() first to see if it's possible to attack the given unit. This function performs no such checks.
+	def attackUnit(self, target):
+		self.__fireAtTarget(target)
+		
+		if target.alive():
 			target.__retaliate(self)
 	#
 	
@@ -125,7 +167,7 @@ class Unit(object):
 	# Apply damage to this unit. Terrain cover will be taken into account, so there may be less actual damage dealt. Returns the actual damage done.
 	def applyDamage(self, damage):
 		# Take cover into account - each cover point reduces incoming damage by 10%. Reductions beyond 100% are capped to 100% (e.g. more cover does not result in healing)
-		finalDamage = max(0, round(damage - (damage * self.field.getTerrainType(self.position).cover * 0.1)))
+		finalDamage = max(0, round(damage - (damage * self.level.getTerrainType(self.position).cover * 0.1)))
 		previousHitpoints = self.hitpoints
 		self.hitpoints = max(0, self.hitpoints - finalDamage)
 		return previousHitpoints - self.hitpoints
@@ -142,22 +184,32 @@ class Unit(object):
 		return self.hitpoints > 0
 	#
 	
-	# Returns True if this unit can be combined with the specified unit. Both units must be of the same type and at least one of the units must be damaged. None of them must contain any other units.
-	def canCombineWith(self, unit):
+	# Returns True if this unit can be combined with the specified unit. Both units must be of the same type
+	# and at least the target units must be damaged. None of them must contain any other units or be loaded themselves.
+	def canCombineWithUnit(self, unit):
 		# Same type, and at least one of them is damaged?
-		return self.type is unit.type and \
-		       (self.hitpoints < self.type.maxHitpoints or unit.hitpoints < unit.type.maxHitpoints) and \
-		       (not self.isTransportingUnits() and not unit.isTransportingUnits())
+		return (self.type is unit.type) and \
+		       (unit.hitpoints < unit.type.maxHitpoints) and \
+		       (not self.isTransportingUnits() and not unit.isTransportingUnits()) and \
+		       (not self.isLoaded() and not unit.isLoaded())
 	#
 	
-	# Combines this unit with the specified unit. Returns the number of hitpoints that were left over.
-	def combineWith(self, unit):
+	# Combines this unit with the specified unit. Returns the number of hitpoints that were left over. First call canCombineWithUnit() to see if these units can be combined!
+	def combineWithUnit(self, unit):
 		totalHitpoints = self.hitpoints + unit.hitpoints
 		self.hitpoints = min(self.type.maxHitpoints, self.hitpoints + unit.hitpoints)
 		self.ammunition = min(self.type.maxAmmunition, self.ammunition + unit.ammunition)
-		# TODO: Take care of loaded units!!! Perhaps don't allow combining when units are carrying other units?
 		
-		return round(self.type.cost * (totalHitpoints - self.hitpoints) * 0.1)
+		return totalHitpoints - self.hitpoints
+	#
+	
+	# Captures the given building. Returns True if the building has fully been captured.
+	def captureBuilding(self, building):
+		self.captureTarget = building
+		if self.captureTarget.capture(self.hitpoints):
+			self.captureTarget.restoreCapturePoints()
+			self.captureTarget = None
+			return True
 	#
 	
 	# Hides this unit, if it can. For example, a sub that submerges itself goes into hiding. Hidden units can only be seen by units directly next to them.
@@ -169,6 +221,31 @@ class Unit(object):
 	# Unhides the unit. For example, an emerging submarine.
 	def unhide(self):
 		self.hiding = False
+	#
+	
+	# True if this unit is hiding. For example, a submerged submarine would return True if it is submerged, and False if it's on the surface.
+	def isHiding(self):
+		return self.hiding
+	#
+	
+	
+	# Forcefully kill this unit.
+	def kill(self):
+		self.hitpoints = 0
+		self.onDeath()
+	#
+	
+	# Clean up some things when this unit dies.
+	def onDeath(self):
+		# If this unit was capturing a building, undo all capturing progress.
+		if self.captureTarget != None:
+			self.captureTarget.restoreCapturePoints()
+			self.captureTarget = None
+		
+		# If this unit was transporting other units, kill them.
+		for unit in self.loadedUnits:
+			unit.kill()
+		self.loadedUnits = []
 	#
 	
 	
