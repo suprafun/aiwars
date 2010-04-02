@@ -15,18 +15,35 @@ class Main(object):
 		self.game = Game(self.gameDatabase)
 		
 		self.gameClient = GameClient()
-		self.gameClient.connectToServer(host, port)
-		self.gameClient.listenForData(self.onMessageReceivedFromServer)
+		self.gameClient.setCallbackForMessageType(STC_DATABASE_DATA, self.onDatabaseData)
+		self.gameClient.setCallbackForMessageType(STC_MAP_DATA, self.onMapData)
+		self.gameClient.setCallbackForMessageType(STC_GAME_DATA, self.onGameData)
+		self.gameClient.setCallbackForMessageType(STC_START_GAME, self.onStartGame)
+		
+		self.gameClient.connectToServer(host, port, 30)
+		self.gameClient.listenForData()
 	#
 	
-	def onMessageReceivedFromServer(self, messageType, message):
-		print 'received message from server'
+	def onDatabaseData(self, message):
+		print 'Database data received from server'
+		self.gameDatabase.fromStream(message)
+	#
+	
+	def onMapData(self, message):
+		print 'Map data received from server'
+		self.game.level.fromStream(message)
 		
-		if messageType == STC_DATABASE_DATA:
-			print 'Database data received!'
-		elif messageType == STC_MAP_DATA:
-			print 'Map data received!'
-			self.gameClient.sendMessageToServer(CTS_SET_NAME, toStream(self.name))
-			self.gameClient.sendMessageToServer(CTS_SET_MODE, CLIENT_MODE_PLAYER)
+		self.gameClient.sendMessageToServer(CTS_SET_NAME, toStream(self.name))
+		self.gameClient.sendMessageToServer(CTS_SET_MODE, CLIENT_MODE_PLAYER)
+	#
+	
+	def onGameData(self, message):
+		print 'Game data received from server'
+		pass
+	#
+	
+	def onStartGame(self, message):
+		print 'Start the game!'
+		pass
 	#
 #

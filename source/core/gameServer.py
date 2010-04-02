@@ -12,16 +12,23 @@ class GameServer:
 		self.__clients = []
 		self.__nextClientID = 0
 		
-		# Callbacks - these can be set by the calling code.
-		self.onClientConnected = None
-		self.onMessageReceivedFromClient = None
+		self.__onClientConnected = None
+		self.__onMessageFromClient = {}
+	#
+	
+	def setCallbackForMessageType(self, messageType, onMessageFromClient):
+		if onMessageFromClient == None:
+			del self.__onMessageFromClient[messageType]
+		else:
+			self.__onMessageFromClient[messageType] = onMessageFromClient
 	#
 	
 	# A blocking call, which will call the onClientConnect callback whenever a new client connects.
 	# The callback will be passed a GameServerClientData object.
 	# Call stopListeningForConnections() from within the callback to make this function return.
-	def listenForConnections(self):
+	def listenForConnections(self, onClientConnected):
 		self.__waitForConnections = True
+		self.__onClientConnected = onClientConnected
 		
 		while self.__waitForConnections:
 			(connection, address) = self.server.accept()
@@ -29,8 +36,8 @@ class GameServer:
 			clientData = ClientData(self.__getNextClientID(), connection, address)
 			
 			self.__clients.append(clientData)
-			if self.onClientConnected != None:
-				self.onClientConnected(clientData)
+			if self.__onClientConnected != None:
+				self.__onClientConnected(clientData)
 			
 			clientData.listenForData(self.__onMessageReceivedFromClient)
 	#
@@ -46,8 +53,8 @@ class GameServer:
 	#
 	
 	def __onMessageReceivedFromClient(self, clientData, messageType, message):
-		if self.onMessageReceivedFromClient != None:
-			self.onMessageReceivedFromClient(clientData, messageType, message)
+		if self.__onMessageFromClient.has_key(messageType):
+			self.__onMessageFromClient[messageType](clientData, message)
 	#
 	
 	

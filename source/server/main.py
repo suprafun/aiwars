@@ -4,6 +4,7 @@ from core.gameDatabase import *
 from core.gameServer import *
 
 from core.messageTypes import *
+from core.serialization import *
 
 
 class Main(object):
@@ -15,9 +16,11 @@ class Main(object):
 		self.game.loadLevelFromFile('../levels/' + levelfile)
 		
 		self.gameServer = GameServer(host, port)
-		self.gameServer.onClientConnected = self.onClientConnected
-		self.gameServer.onMessageReceivedFromClient = self.onMessageReceivedFromClient
-		self.gameServer.listenForConnections()
+		self.gameServer.setCallbackForMessageType(CTS_SET_MODE, self.onClientSetsMode)
+		self.gameServer.setCallbackForMessageType(CTS_SET_NAME, self.onClientSetsName)
+		self.gameServer.setCallbackForMessageType(CTS_READY, self.onClientReady)
+		
+		self.gameServer.listenForConnections(self.onClientConnected)
 	#
 	
 	def onClientConnected(self, client):
@@ -26,7 +29,21 @@ class Main(object):
 		client.sendMessage(STC_MAP_DATA, self.game.level.toStream())
 	#
 	
-	def onMessageReceivedFromClient(self, client, messageType, message):
-		print 'client', client, 'has sent message type:', messageType, 'message:', message
+	def onClientSetsMode(self, client, message):
+		if message == CLIENT_MODE_PLAYER:
+			print 'Client #' + str(client.id) + ' sets mode to PLAYER'
+		elif message == CLIENT_MODE_OBSERVER:
+			print 'Client #' + str(client.id) + ' sets mode to OBSERVER'
+		else:
+			print 'Client #' + str(client.id) + ' sets mode to invalid mode!'
+	#
+	
+	def onClientSetsName(self, client, message):
+		(name, readBytesCount) = fromStream(message, str)
+		print 'Client #' + str(client.id) + ' sets name to ' + name
+	#
+	
+	def onClientReady(self, client, message):
+		print 'Client #' + str(client.id) + ' is READY!'
 	#
 #

@@ -2,7 +2,7 @@ from serialization import *
 
 
 class UnitType(object):
-	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False):
+	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False, canHide = False):
 		self.gameDatabase = None
 		
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
@@ -25,6 +25,7 @@ class UnitType(object):
 		
 		self.canSupply = canSupply                      # Can this unit supply surrounding units with ammunition?
 		self.canCapture = canCapture                    # Can this unit capture buildings?
+		self.canHide = canHide                          # Can this unit hide anywhere? (a submarine can submerge itself)
 		
 		self.transports = {}                            # The unit types that can be transported, and how much room they occupy.
 		self.maxTransportSlots = 0                      # Maximum transport capacity (some units can take up multiple slots).
@@ -93,6 +94,7 @@ class UnitType(object):
 		                self.__dictionaryToList(self.visionOverride, self.gameDatabase.getIndexOfTerrainType), \
 		                self.canSupply, \
 		                self.canCapture, \
+		                self.canHide, \
 		                self.__dictionaryToList(self.transports, self.gameDatabase.getIndexOfUnitType), \
 		                self.maxTransportSlots)
 	#
@@ -121,9 +123,10 @@ class UnitType(object):
 		 self.visionOverride, \
 		 self.canSupply, \
 		 self.canCapture, \
+		 self.canHide, \
 		 self.transports, \
 		 self.maxTransportSlots, \
-		 readBytesCount) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, list, int)
+		 readBytesCount) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, bool, list, int)
 		
 		return readBytesCount
 	#

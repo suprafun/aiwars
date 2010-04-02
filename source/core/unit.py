@@ -17,6 +17,8 @@ class Unit(object):
 		
 		self.loadedUnits = []
 		self.carriedBy = None
+		
+		self.hiding = False
 	#
 	
 	# Returns the current vision range, taking terrain type into account.
@@ -50,6 +52,21 @@ class Unit(object):
 	# Returns the repair cost for the specified number of hitpoints. This function does not take the current and maximum number of hitpoints into account.
 	def repairCost(self, amount):
 		return int(self.type.cost / 10) * amount
+	#
+	
+	# Returns True if this unit can capture buildings.
+	def canCapture(self):
+		return self.type.canCapture
+	#
+	
+	# Returns True if this unit can supply other units.
+	def canSupply(self):
+		return self.type.canSupply
+	#
+	
+	# Returns true if this unit can hide anywhere.
+	def canHide(self):
+		return self.type.canHide
 	#
 	
 	
@@ -143,14 +160,15 @@ class Unit(object):
 		return round(self.type.cost * (totalHitpoints - self.hitpoints) * 0.1)
 	#
 	
-	# Returns True if this unit can capture buildings.
-	def canCapture(self):
-		return self.type.canCapture
+	# Hides this unit, if it can. For example, a sub that submerges itself goes into hiding. Hidden units can only be seen by units directly next to them.
+	def hide(self):
+		if self.canHide():
+			self.hiding = True
 	#
 	
-	# Returns True if this unit can supply other units.
-	def canSupply(self):
-		return self.type.canSupply
+	# Unhides the unit. For example, an emerging submarine.
+	def unhide(self):
+		self.hiding = False
 	#
 	
 	
