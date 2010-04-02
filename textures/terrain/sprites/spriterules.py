@@ -1,17 +1,26 @@
 # Binds sprites to terrain types, and associates a (x, y, width, height) bounding box with them, to avoid overlap.
 
 # Plains
-rules.addRule('Plains', 'grass_1.png', (-1, -1,  6,  8))
-rules.addRule('Plains', 'grass_2.png', (-1, -1,  8,  6))
-rules.addRule('Plains', 'grass_3.png', (-1, -1,  9,  6))
-rules.addRule('Plains', 'grass_4.png', (-1, -1,  9,  6))
+rules.setSpriteCount('Plains', 2, 5)
+rules.addRule('Plains', 'grass_1.png', ( 1,  1,  2,  4))
+rules.addRule('Plains', 'grass_2.png', ( 1,  1,  4,  2))
+rules.addRule('Plains', 'grass_3.png', ( 1,  1,  5,  2))
+rules.addRule('Plains', 'grass_4.png', ( 1,  1,  5,  2))
 
 # Forest
-rules.addRule('Forest', 'tree_1.png', (-1, 10, 20, 10))
-rules.addRule('Forest', 'tree_2.png', (-1,  8, 15, 10))
-rules.addRule('Forest', 'tree_3.png', (-1, 20,  9, 10))
+rules.setSpriteCount('Forest', 3, 6)
+rules.addRule('Forest', 'tree_1.png', ( 1, 22,  7,  6))
+rules.addRule('Forest', 'tree_2.png', ( 1, 10, 11,  6))
+rules.addRule('Forest', 'tree_3.png', ( 1, 12, 16,  6))
+
+# Mountain
+rules.setSpriteCount('Mountain', 3, 5)
+rules.addRule('Mountain', 'rock_1.png', ( 1,  5, 12,  8))
+rules.addRule('Mountain', 'rock_2.png', ( 1,  4,  7,  5))
+rules.addRule('Mountain', 'rock_3.png', ( 1,  3, 15,  6))
 
 # City
-rules.addRule('City', 'apartment_1.png', (-2,  6, 20, 15))
-rules.addRule('City', 'apartment_2.png', (-2,  3, 13, 19))
-rules.addRule('City', 'apartment_3.png', (-2,  6, 14, 13))
+rules.setSpriteCount('City', 3, 5)
+rules.addRule('City', 'apartment_1.png', ( 0,  8, 16, 11))
+rules.addRule('City', 'apartment_2.png', ( 0,  5,  9, 15))
+rules.addRule('City', 'apartment_3.png', ( 0,  8, 10,  9))
