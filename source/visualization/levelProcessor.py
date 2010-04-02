@@ -6,12 +6,12 @@ from spriteRuleset import *
 
 # First, tiles are mapped to so-called base tiles - transitions from sea to plains and from sea to forests are the same, anyway
 # Note that terrain names, as specified in the game database, are used to determine the base type. So this table is quite database-specific.
-__baseTiles = {'Road': 0, \
+__baseTiles = {'Road': 5, \
                'Plains': 0, \
                'Forest': 0, \
                'Mountain': 0, \
                'River': 1, \
-               'Bridge': 1, \
+               'Bridge': 4, \
                'Shoal': 2, \
                'Sea': 3, \
                'Reef': 3, \
