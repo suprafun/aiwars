@@ -1,6 +1,9 @@
 #================================================================================
 # Level info
 level.name = 'Spring Lakes'
+level.author = 'Advance Wars 2'
+level.description = 'Taken from Advance Wars 2, Versus, 4P Maps'
+
 level.supportedDatabases = ['AI Wars']
 level.playerCount = 4
 

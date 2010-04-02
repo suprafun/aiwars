@@ -1,6 +1,9 @@
 #================================================================================
 # Level info
 level.name = 'Crater Isle'
+level.author = 'Advance Wars 2'
+level.description = 'Taken from Advance Wars 2, Versus, Classic'
+
 level.supportedDatabases = ['AI Wars']
 level.playerCount = 2
 

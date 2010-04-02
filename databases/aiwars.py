@@ -1,6 +1,7 @@
 
 
 database.name = 'AI Wars'
+database.description = 'Based on Advance Wars 2, this database contains the basic terrain, unit and building types as seen in AW2, but excludes the more exotic terrain and units.'
 
 #================================================================================
 # Terrain types
@@ -9,20 +10,23 @@ database.name = 'AI Wars'
 road                = TerrainType('Road',          0,  1)
 plains              = TerrainType('Plains',        1,  1)
 forest              = TerrainType('Forest',        2,  1, hideUnits = True)
-mountain            = TerrainType('Mountain',      4,  99)
-river               = TerrainType('River',         0,  99)
+mountain            = TerrainType('Mountain',      4,  999)
+river               = TerrainType('River',         0,  999)
 bridge              = TerrainType('Bridge',        0,  1)
 shoal               = TerrainType('Shoal',         0,  1)
-sea                 = TerrainType('Sea',           0,  99)
-reef                = TerrainType('Reef',          1,  99, hideUnits = True)
+sea                 = TerrainType('Sea',           0,  999)
+reef                = TerrainType('Reef',          1,  999, hideUnits = True)
 cityTerrain         = TerrainType('City',          3,  1)
 baseTerrain         = TerrainType('Base',          3,  1)
 headquartersTerrain = TerrainType('Headquarters',  4,  1)
 airportTerrain      = TerrainType('Airport',       3,  1)
-dockTerrain         = TerrainType('Dock',          3,  1)
+portTerrain         = TerrainType('Port',          3,  1)
+impassable          = TerrainType('Impassable',    0,  999)
 
 # Add the terrain types to the database
-database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, shoal, sea, reef, cityTerrain, baseTerrain, headquartersTerrain, airportTerrain, dockTerrain])
+database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, shoal, \
+                              sea, reef, cityTerrain, baseTerrain, headquartersTerrain, \
+                              airportTerrain, portTerrain, impassable])
 
 
 
@@ -30,6 +34,7 @@ database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, sho
 # Unit types
 
 # name, cost, movementPoints, vision, maxAmmunition
+# Ground units
 infantery        = UnitType('Infantery',         1000,   3,  2,  0, canCapture = True)
 mech             = UnitType('Mech',              3000,   2,  2,  3, canCapture = True)
 recon            = UnitType('Recon',             4000,   8,  5,  0)
@@ -42,11 +47,13 @@ artillery        = UnitType('Artillery',         6000,   5,  1,  9, minRange = 2
 rockets          = UnitType('Rockets',          15000,   5,  1,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
 missiles         = UnitType('Missiles',         12000,   4,  5,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
 
+# Aerial units
 fighter          = UnitType('Fighter',          20000,   9,  2,  9)
 bomber           = UnitType('Bomber',           22000,   7,  2,  9)
 battleCopter     = UnitType('Battle copter',     9000,   6,  3,  6)
 transportCopter  = UnitType('Transport copter',  5000,   6,  2,  0)
 
+# Naval units
 battleShip       = UnitType('Battleship',       28000,   5,  2,  9, minRange = 2, maxRange = 6, canActAfterMoving = False, canRetaliate = False)
 cruiser          = UnitType('Cruiser',          18000,   6,  3,  9)
 lander           = UnitType('Lander',           12000,   6,  1,  0)
@@ -113,6 +120,7 @@ cruiser.canTransport(battleCopter, 1)
 cruiser.canTransport(transportCopter, 1)
 
 # Damage tables
+# Ground units
 primaryDamageTable =   [[0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   85,  75,  65,  55,  15,  15,  70,  85,  85,      0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
@@ -125,17 +133,20 @@ primaryDamageTable =   [[0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   
                         [95,  90,  90,  80,  85,  80,  55,  50,  80,  85,  90,      0,   0,   0,   0,       55,  85,  60,  85],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       100, 100, 120, 120,     0,   0,   0,   0],
 
+# Aerial units
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       55,  100, 100, 100,     0,   0,   0,   0],
                         [110, 110, 105, 105, 95,  105, 95,  90,  105, 105, 105,     0,   0,   0,   0,       75,  85,  95,  95],
                         [0,   0,   55,  60,  25,  55,  25,  20,  65,  65,  65,      0,   0,   0,   0,       25,  55,  25,  25],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
 
+# Naval units
                         [95,  90,  90,  80,  85,  80,  55,  50,  80,  85,  90,      0,   0,   0,   0,       50,  95,  95,  95],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   90],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       55,  25,  95,  55]]
 
 
+# Ground units
 secondaryDamageTable = [[55,  45,  12,  14,  5,   5,   1,   1,   15,  25,  25,      0,   0,   7,   30,      0,   0,   0,   0],
                         [65,  55,  18,  20,  6,   6,   1,   1,   32,  35,  35,      0,   0,   0,   0,       0,   0,   0,   0],
                         [70,  65,  35,  45,  4,   6,   1,   1,   45,  55,  28,      0,   0,   10,  35,      0,   0,   0,   0],
@@ -148,11 +159,13 @@ secondaryDamageTable = [[55,  45,  12,  14,  5,   5,   1,   1,   15,  25,  25,  
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
 
+# Aerial units
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [75,  75,  30,  20,  6,   6,   1,   1,   25,  35,  35,      0,   0,   65,  95,      0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
 
+# Naval units
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       55,  65,  115, 115,     0,   0,   0,   0],
                         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       0,   0,   0,   0,       0,   0,   0,   0],
@@ -174,10 +187,10 @@ city         = BuildingType('City',           1000, canRepairUnitTypes = groundU
 base         = BuildingType('Base',           1000, canRepairUnitTypes = groundUnits)
 headquarters = BuildingType('Headquarters',   1000, canRepairUnitTypes = groundUnits, critical = True)
 airport      = BuildingType('Airport',        1000, canRepairUnitTypes = aerialUnits)
-dock         = BuildingType('Dock',           1000, canRepairUnitTypes = navalUnits)
+port         = BuildingType('Port',           1000, canRepairUnitTypes = navalUnits)
 
 # Add the building types to the database
-database.buildingTypes.extend([city, base, headquarters, airport, dock])
+database.buildingTypes.extend([city, base, headquarters, airport, port])
 
 # Bases can build ground units
 for unitType in groundUnits:
@@ -187,13 +200,13 @@ for unitType in groundUnits:
 for unitType in aerialUnits:
 	airport.canBuild(unitType)
 
-# Docks can build naval units
+# Ports can build naval units
 for unitType in navalUnits:
-	dock.canBuild(unitType)
+	port.canBuild(unitType)
 
 # Associate buildings with their respective terrain types
 cityTerrain.buildingType         = city
 baseTerrain.buildingType         = base
 headquartersTerrain.buildingType = headquarters
 airportTerrain.buildingType      = airport
-dockTerrain.buildingType         = dock
+portTerrain.buildingType         = port

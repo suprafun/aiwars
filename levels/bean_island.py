@@ -2,6 +2,9 @@
 # Level info
 level.name = 'Bean Island'
 level.supportedDatabases = ['AI Wars']
+level.author = 'Advance Wars 2'
+level.description = 'Taken from Advance Wars 2, Versus, Classic'
+
 level.playerCount = 2
 
 #================================================================================

@@ -1,6 +1,9 @@
 #================================================================================
 # Level info
 level.name = 'Test level'
+level.author = 'Pieter Witvoet'
+level.description = 'Visualization test level'
+
 level.supportedDatabases = ['AI Wars']
 level.playerCount = 2
 

@@ -105,6 +105,9 @@ class GameScreen:
 		self.gridTilemap = Tilemap()
 		self.spriteCollection = SpriteCollection()
 		
+		self.baseTilemap.setSize(Point(self.game.level.width(), self.game.level.height()))
+		self.clampCameraToLevel()
+		
 		createTilemapFromLevel(self.baseTilemap, \
 		                       '../textures/terrain/tiles', \
 		                       self.spriteCollection, \
@@ -115,8 +118,7 @@ class GameScreen:
 		                       self.game.gameDatabase)
 		
 		self.gridTilemap.addImage(self.imageCache.getImage('../textures/terrain/grid_lines.png'))
+		self.gridTilemap.addImage(self.imageCache.getImage('../textures/terrain/fog_of_war.png'))
 		self.gridTilemap.setSize(Point(self.game.level.width(), self.game.level.height()), 0)
-		
-		self.clampCameraToLevel()
 	#
 #

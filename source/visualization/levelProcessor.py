@@ -19,7 +19,8 @@ __baseTiles = {'Road': 5, \
                'Base': 0, \
                'Headquarters': 0, \
                'Airport': 0, \
-               'Dock': 3}
+               'Dock': 3, \
+               'Impassable': 6}
 # NOTE: Bridge type needs special handling?!?
 
 __cornerPositions = {'tl': Point(0, 0), \

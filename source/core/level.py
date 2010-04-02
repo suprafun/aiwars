@@ -1,19 +1,31 @@
+import os
 from guid import *
 from point import *
 from building import *
 from levelPlayerData import *
 from serialization import *
+from levelLoaders import *
 
 
 class Level(object):
 	def __init__(self, game, gameDatabase):
 		self.game = game
 		self.gameDatabase = gameDatabase
+		
+		# Support for multiple level file formats
+		self.mapLoaders = {'.py': loadFromPythonFile, \
+		                   '.awm': loadFromAwmFile, \
+		                   '.aws': loadFromAwsFile, \
+		                   '.aw2': loadFromAw2File, \
+		                   '.awd': loadFromAwdFile}
+		
 		self.reset()
 	#
 	
 	def reset(self):
 		self.name = 'Unnamed'
+		self.author = 'Unknown'
+		self.description = 'No description'
 		self.supportedDatabases = []
 		self.playersData = []
 		
@@ -22,12 +34,18 @@ class Level(object):
 	#
 	
 	def loadFromFile(self, filename):
-		self.reset()
-		execfile(filename, {'level': self, 'Point': Point})
-		
-		if not self.gameDatabase.name in self.supportedDatabases:
-			print 'Level [' + self.name + '] can\'t be played with database [' + self.gameDatabase.name + ']!'
+		extension = os.path.splitext(filename)[1]
+		if self.mapLoaders.has_key(extension):
 			self.reset()
+			self.mapLoaders[extension](self, filename)
+			
+			print '\n==============================================================================='
+			print 'Level:    ' + self.name
+			print 'Author:   ' + self.author
+			print '\nDescription:\n' + self.description
+			print '==============================================================================='
+		else:
+			print 'File type [' + extension + '] not supported!'
 	#
 	
 	def setTileData(self, tileData):
@@ -96,6 +114,8 @@ class Level(object):
 			buildingsStream += building.toStream()
 		
 		return toStream(self.name, \
+		                self.author, \
+		                self.description, \
 		                self.width(), \
 		                self.height(), \
 		                tiles, \
@@ -104,11 +124,13 @@ class Level(object):
 	
 	def fromStream(self, stream):
 		(self.name, \
+		 self.author, \
+		 self.description, \
 		 width, \
 		 height, \
 		 tiles, \
 		 buildingsCount, \
-		 readBytesCount) = fromStream(stream, str, int, int, list, int)
+		 readBytesCount) = fromStream(stream, str, str, str, int, int, list, int)
 		
 		self.buildings = []
 		for i in xrange(buildingsCount):

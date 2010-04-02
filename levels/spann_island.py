@@ -1,6 +1,9 @@
 #================================================================================
 # Level info
 level.name = 'Spann Island'
+level.author = 'Advance Wars 2'
+level.description = 'Taken from Advance Wars 2, Versus, War Room'
+
 level.supportedDatabases = ['AI Wars']
 level.playerCount = 2
 

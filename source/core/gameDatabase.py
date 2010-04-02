@@ -10,6 +10,8 @@ class GameDatabase(object):
 	
 	def reset(self):
 		self.name = ''
+		self.author = ''
+		self.description = ''
 		
 		self.terrainTypes = []
 		self.unitTypes = []
@@ -55,6 +57,27 @@ class GameDatabase(object):
 		return self.buildingTypes[index]
 	#
 	
+	def getTerrainTypeByName(self, name):
+		for terrainType in self.terrainTypes:
+			if terrainType.name == name:
+				return terrainType
+		return None
+	#
+	
+	def getUnitTypeByName(self, name):
+		for unitType in self.unitTypes:
+			if unitType.name == name:
+				return unitType
+		return None
+	#
+	
+	def getBuildingTypeByName(self, name):
+		for buildingType in self.buildingTypes:
+			if buildingType.name == name:
+				return buildingType
+		return None
+	#
+	
 	
 	# Serialization
 	def toStream(self):
@@ -71,6 +94,8 @@ class GameDatabase(object):
 			buildingTypesStream += buildingType.toStream()
 		
 		return toStream(self.name, \
+		                self.author, \
+		                self.description, \
 		                len(self.terrainTypes), \
 		                len(self.unitTypes), \
 		                len(self.buildingTypes)) + terrainTypesStream + unitTypesStream + buildingTypesStream
@@ -78,10 +103,12 @@ class GameDatabase(object):
 	
 	def fromStream(self, stream):
 		(self.name, \
+		 self.author, \
+		 self.description, \
 		 terrainTypesCount, \
 		 unitTypesCount, \
 		 buildingTypesCount, \
-		 readBytesCount) = fromStream(stream, str, int, int, int)
+		 readBytesCount) = fromStream(stream, str, str, str, int, int, int)
 		
 		self.terrainTypes = []
 		for i in xrange(terrainTypesCount):
