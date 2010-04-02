@@ -32,8 +32,8 @@ def toStream(*variables):
 	return struct.pack(format, *content)
 #
 
-# This method reads the stream according to the expected types, in their respective order.
-# For example, when called with (stream, str, int, list), it will return a tuple that contains a string, an int and a list containing integers.
+# This method reads the stream according to the expected types, in their respective order. In addition to the expected types, it also returns the number of read bytes.
+# For example, when called with (stream, str, int, list), it will return a tuple that contains a string, an int, a list containing integers and an int that indicates how many bytes were read.
 def fromStream(stream, *types):
 	content = []
 	
@@ -65,6 +65,7 @@ def fromStream(stream, *types):
 		else:
 			print 'Unsupported type, can\'t read from stream!'
 	
+	content.append(streamPos)
 	return content
 #
 

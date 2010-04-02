@@ -122,7 +122,8 @@ class UnitType(object):
 		 self.canSupply, \
 		 self.canCapture, \
 		 self.transports, \
-		 self.maxTransportSlots) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, list, int)
+		 self.maxTransportSlots, \
+		 readBytesCount) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, list, int)
 		
 		self.primaryDamage = self.__listToDictionary(self.primaryDamage, self.gameDatabase.getUnitType)
 		self.secondaryDamage = self.__listToDictionary(self.secondaryDamage, self.gameDatabase.getUnitType)
@@ -131,6 +132,8 @@ class UnitType(object):
 		self.visionOverride = self.__listToDictionary(self.visionOverride, self.gameDatabase.getTerrainType)
 		
 		self.transports = self.__listToDictionary(self.transports, self.gameDatabase.getUnitType)
+		
+		return readBytesCount
 	#
 	
 	def __listToDictionary(self, _list, getTypeFunction):

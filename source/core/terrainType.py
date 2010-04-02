@@ -17,7 +17,7 @@ class TerrainType(object):
 	# Serialization
 	def toStream(self):
 		buildingTypeIndex = -1
-		if self.buildingType:
+		if self.buildingType != None:
 			buildingTypeIndex = self.gameDatabase.getIndexOfBuildingType(self.buildingType)
 		
 		return toStream(self.name, \
@@ -32,11 +32,14 @@ class TerrainType(object):
 		self.cover, \
 		self.movementCost, \
 		self.hideUnits, \
-		self.buildingType) = fromStream(stream, str, int, int, bool, int)
+		self.buildingType, \
+		readBytesCount) = fromStream(stream, str, int, int, bool, int)
 		
 		if self.buildingType == -1:
 			self.buildingType = None
 		else:
 			self.buildingType = self.gameDatabase.getBuildingType(self.buildingType)
+		
+		return readBytesCount
 	#
 #

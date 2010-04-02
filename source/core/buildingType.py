@@ -28,8 +28,11 @@ class BuildingType(object):
 		(self.name, \
 		 self.income, \
 		 self.availableUnitTypes, \
-		 self.maxCapturePoints) = fromStream(stream, int, str, list, int)
+		 self.maxCapturePoints, \
+		 readBytesCount) = fromStream(stream, int, str, list, int)
 		
 		self.availableUnitTypes = [self.gameDatabase.getUnitType(index) for index in self.availableUnitTypes]
+		
+		return readBytesCount
 	#
 #

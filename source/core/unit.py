@@ -1,14 +1,15 @@
 from unitType import *
-from guid import *
-from point import *
+from serialization import *
 
 
 class Unit(object):
 	# Creates a new unit, of a given type, at the specified position. Units keep a reference to the Field instance that they're located on, in order to check their surroundings.
-	def __init__(self, type, position, field):
+	def __init__(self, gameDatabase, type, id, position, field, player):
+		self.gameDatabase = gameDatabase
 		self.type = type
-		self.id = getGUID()
+		self.id = id
 		self.field = field
+		self.player = player
 		
 		self.hitpoints = self.type.maxHitpoints
 		self.position = position
@@ -150,5 +151,45 @@ class Unit(object):
 	# Returns True if this unit can supply other units.
 	def canSupply(self):
 		return self.type.canSupply
+	#
+	
+	
+	# Serialization
+	def toStream(self):
+		carriedByID = -1
+		if self.carriedBy != None:
+			carriedByID = self.carriedByID.id
+		
+		return toStream(self.gameDatabase.getIndexOfUnitType(self.type), \
+		                self.id, \
+		                self.hitpoints, \
+		                self.position.x, \
+		                self.position.y, \
+		                self.ammunition, \
+		                [unit.id for unit in self.loadedUnits], \
+		                carriedByID)
+	#
+	
+	def fromStream(self, stream):
+		(self.type, \
+		 self.id, \
+		 self.hitpoints, \
+		 self.position.x, \
+		 self.position.y, \
+		 self.ammunition, \
+		 self.loadedUnits, \
+		 self.carriedBy, \
+		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, list, int)
+		
+		self.type = self.gameDatabase.getUnitType(self.type)
+		
+		self.loadedUnits = [self.player.getUnitByID(unitID) for unitID in self.loadedUnits]
+		
+		if self.carriedBy == -1:
+			self.carriedBy = None
+		else:
+			self.carriedBy = self.player.getUnitByID(self.carriedBy)
+		
+		return readBytesCount
 	#
 #

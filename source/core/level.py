@@ -1,6 +1,8 @@
+from guid import *
 from point import *
 from building import *
 from levelPlayerData import *
+from serialization import *
 
 
 class Level(object):
@@ -33,7 +35,7 @@ class Level(object):
 				self.terrain[y][x] = terrainType
 				
 				if terrainType.buildingType != None:
-					self.addBuilding(Building(terrainType.buildingType, Point(x, y)))
+					self.addBuilding(Building(self.gameDatabase, terrainType.buildingType, getGUID(), Point(x, y)))
 	#
 	
 	def addBuilding(self, building):
@@ -45,16 +47,6 @@ class Level(object):
 		self.playersData.append(playerData)
 		return playerData
 	#
-	
-	def loadFromBuffer(self, buffer):
-		self.reset()
-		pass
-	#
-	
-	def saveToBuffer(self, buffer):
-		pass
-	#
-	
 	
 	def getPlayersCount(self):
 		return len(self.playersData)
@@ -69,5 +61,54 @@ class Level(object):
 			if building.position.x == x and building.position.y == y:
 				return building
 		return None
+	#
+	
+	def width(self):
+		return len(self.terrain[0])
+	#
+	
+	def height(self):
+		return len(self.terrain)
+	#
+	
+	
+	# Serialization
+	def toStream(self):
+		tiles = []
+		for row in self.terrain:
+			for tile in row:
+				tiles.append(self.gameDatabase.getIndexOfTerrainType(tile))
+		
+		buildingsStream = ''
+		for building in self.buildings:
+			buildingsStream += building.toStream()
+		
+		return toStream(self.name, \
+		                self.width(), \
+		                self.height(), \
+		                tiles, \
+		                len(self.buildings)) + buildingsStream
+	#
+	
+	def fromStream(self, stream):
+		(self.name, \
+		 width, \
+		 height, \
+		 tiles, \
+		 buildingCount, \
+		 readBytesCount) = fromStream(stream, str, int, int, list, int)
+		
+		self.buildings = []
+		for i in xrange(buildingCount):
+			# TODO: Instead of having to create a Building instance with some default type, construct one directly from a stream?
+			building = Building(self.gameDatabase, self.gameDatabase.getBuildingType(0), 0, Point(0, 0))
+			readBytesCount += building.fromStream(stream[readBytesCount:])
+			self.buildings.append(building)
+		
+		self.terrain = [[]]
+		for row in xrange(height):
+			self.terrain.append([self.gameDatabase.getTerrainType(tile) for tile in tiles[row * width:row * width + width]])
+		
+		return readBytesCount
 	#
 #
