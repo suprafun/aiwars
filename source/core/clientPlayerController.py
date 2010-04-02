@@ -3,9 +3,21 @@ from serialization import *
 
 
 class ClientPlayerController(object):
-	def __init__(self, player):
+	def __init__(self, client, player):
+		self.client = client
 		self.player = player
+		
+		self.ready = False
 	#
+	
+	def setReady(self, ready):
+		self.ready = ready
+	#
+	
+	def isReady(self):
+		return self.ready
+	#
+	
 	
 	def onMoveCommand(self, message):
 		pass

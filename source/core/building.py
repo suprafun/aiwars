@@ -3,11 +3,14 @@ from serialization import *
 
 
 class Building(object):
-	def __init__(self, gameDatabase, type, id, position):
+	def __init__(self, game, gameDatabase, type, id, position, player):
+		self.game = game
 		self.gameDatabase = gameDatabase
 		self.type = type
 		self.id = id
 		self.position = position
+		
+		self.player = player
 		
 		self.capturePoints = self.type.maxCapturePoints
 	#
@@ -41,10 +44,15 @@ class Building(object):
 	
 	# Serialization
 	def toStream(self):
+		playerID = -1
+		if self.player != None:
+			playerID = self.player.id
+		
 		return toStream(self.gameDatabase.getIndexOfBuildingType(self.type), \
 		                self.id, \
 		                self.position.x, \
 		                self.position.y, \
+		                playerID, \
 		                self.capturePoints)
 	#
 	
@@ -53,10 +61,12 @@ class Building(object):
 		 self.id, \
 		 self.position.x, \
 		 self.position.y, \
+		 self.player, \
 		 self.capturePoints, \
-		 readBytesCount) = fromStream(stream, int, int, int, int, int)
+		 readBytesCount) = fromStream(stream, int, int, int, int, int, int)
 		
 		self.type = self.gameDatabase.getBuildingType(self.type)
+		self.player = self.game.getPlayerByID(self.player)
 		
 		return readBytesCount
 	#

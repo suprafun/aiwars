@@ -34,6 +34,7 @@ class Main(object):
 		
 		self.gameClient.sendMessageToServer(CTS_SET_NAME, toStream(self.name))
 		self.gameClient.sendMessageToServer(CTS_SET_MODE, CLIENT_MODE_PLAYER)
+		self.gameClient.sendMessageToServer(CTS_READY, '')
 	#
 	
 	def onGameData(self, message):

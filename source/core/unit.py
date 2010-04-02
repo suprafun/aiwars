@@ -255,28 +255,39 @@ class Unit(object):
 		if self.carriedBy != None:
 			carriedByID = self.carriedByID.id
 		
+		captureTarget = -1
+		if self.captureTarget != None:
+			captureTarget = self.captureTarget.id
+		
 		return toStream(self.gameDatabase.getIndexOfUnitType(self.type), \
 		                self.id, \
+		                self.player.id, \
 		                self.hitpoints, \
 		                self.position.x, \
 		                self.position.y, \
 		                self.ammunition, \
 		                [unit.id for unit in self.loadedUnits], \
-		                carriedByID)
+		                carriedByID, \
+		                self.hiding, \
+		                captureTarget)
 	#
 	
 	def fromStream(self, stream):
 		(self.type, \
 		 self.id, \
+		 self.player, \
 		 self.hitpoints, \
 		 self.position.x, \
 		 self.position.y, \
 		 self.ammunition, \
 		 self.loadedUnits, \
 		 self.carriedBy, \
-		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, list, int)
+		 self.hiding, \
+		 self.captureTarget, \
+		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, int, list, int, bool, int)
 		
 		self.type = self.gameDatabase.getUnitType(self.type)
+		self.player = game.getPlayerByID(self.player)
 		
 		self.loadedUnits = [self.player.getUnitByID(unitID) for unitID in self.loadedUnits]
 		
@@ -284,6 +295,11 @@ class Unit(object):
 			self.carriedBy = None
 		else:
 			self.carriedBy = self.player.getUnitByID(self.carriedBy)
+		
+		if self.captureTarget == -1:
+			self.captureTarget = None
+		else:
+			self.captureTarget = self.player.game.getBuildingByID(self.captureTarget)
 		
 		return readBytesCount
 	#

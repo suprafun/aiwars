@@ -4,15 +4,16 @@ from building import *
 from pathfinding import *
 
 
-ACTION_RESULT_SUCCESS = chr(1)
-ACTION_RESULT_INVALID = chr(2)
-ACTION_RESULT_TRAPPED = chr(3)
+ACTION_RESULT_SUCCESS = chr(0)
+ACTION_RESULT_INVALID = chr(1)
+ACTION_RESULT_TRAPPED = chr(2)
 
 
 class Player(object):
-	def __init__(self, game, name):
+	def __init__(self, game, name, id):
 		self.game = game
 		self.name = name
+		self.id = id
 		
 		self.money = 0
 		self.buildings = []

@@ -5,7 +5,7 @@ from player import *
 class Game(object):
 	def __init__(self, gameDatabase):
 		self.gameDatabase = gameDatabase
-		self.level = Level(self.gameDatabase)
+		self.level = Level(self, self.gameDatabase)
 		
 		# TODO: Add more game options?
 		self.fogOfWar = False
@@ -14,10 +14,15 @@ class Game(object):
 		self.observers = []
 	#
 	
-	def addPlayer(self, name):
-		player = Player(self, name)
+	def addPlayer(self, name, id):
+		player = Player(self, name, id)
 		self.players.append(player)
 		return player
+	#
+	
+	def removePlayer(self, player):
+		if player in self.players:
+			self.players.remove(player)
 	#
 	
 	def getOtherPlayers(self, player):
@@ -32,6 +37,13 @@ class Game(object):
 		return self.players
 	#
 	
+	def getPlayerByID(self, playerID):
+		for player in self.players:
+			if player.id == playerID:
+				return player
+		return None
+	#
+	
 	def playerHasLost(self, player):
 		# TODO!
 		print 'Player', player.name, 'has lost!'
@@ -44,5 +56,18 @@ class Game(object):
 	
 	def loadLevelFromFile(self, filename):
 		self.level.loadFromFile(filename)
+	#
+	
+	
+	def getUnitByID(self, unitID):
+		for player in self.players:
+			unit = player.getUnitByID(unitID)
+			if unit != None:
+				return unit
+		return None
+	#
+	
+	def getBuildingByID(self, buildingID):
+		return self.level.getBuildingByID(buildingID)
 	#
 #

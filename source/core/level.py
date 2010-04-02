@@ -6,7 +6,8 @@ from serialization import *
 
 
 class Level(object):
-	def __init__(self, gameDatabase):
+	def __init__(self, game, gameDatabase):
+		self.game = game
 		self.gameDatabase = gameDatabase
 		self.reset()
 	#
@@ -35,7 +36,7 @@ class Level(object):
 				self.terrain[y][x] = terrainType
 				
 				if terrainType.buildingType != None:
-					self.addBuilding(Building(self.gameDatabase, terrainType.buildingType, getGUID(), Point(x, y)))
+					self.addBuilding(Building(self.game, self.gameDatabase, terrainType.buildingType, getGUID(), Point(x, y), None))
 	#
 	
 	def addBuilding(self, building):
@@ -108,7 +109,7 @@ class Level(object):
 		self.buildings = []
 		for i in xrange(buildingsCount):
 			# TODO: Instead of having to create a Building instance with some default type, construct one directly from a stream?
-			building = Building(self.gameDatabase, self.gameDatabase.getBuildingType(0), 0, Point(0, 0))
+			building = Building(self.game, self.gameDatabase, self.gameDatabase.getBuildingType(0), 0, Point(0, 0), None)
 			readBytesCount += building.fromStream(stream[readBytesCount:])
 			self.buildings.append(building)
 		
