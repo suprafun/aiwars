@@ -1,7 +1,10 @@
+from serialization import *
 
 
 class UnitType(object):
 	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canFireAfterMove = True, canRetaliate = True, canSupply = False, canCapture = False):
+		self.gameDatabase = None
+		
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
 		self.cost = cost                                # How expensive this unit type is to construct.
 		self.movementPoints = movementPoints            # How many movement points this unit has (some tiles take cost points to cross than others).
@@ -69,5 +72,73 @@ class UnitType(object):
 	
 	def secondaryDamageAgainst(self, unitType):
 		return self.secondaryDamage[unitType]
+	#
+	
+	
+	# Serialization
+	def toStream(self):
+		return toStream(self.name, \
+		                self.cost, \
+		                self.movementPoints, \
+		                self.vision, \
+		                self.maxHitpoints, \
+		                self.__dictionaryToList(self.primaryDamage, self.gameDatabase.getIndexOfUnitType), \
+		                self.__dictionaryToList(self.secondaryDamage, self.gameDatabase.getIndexOfUnitType), \
+		                self.maxAmmunition, \
+		                self.minRange, \
+		                self.maxRange, \
+		                self.canFireAfterMove, \
+		                self.canRetaliate, \
+		                self.__dictionaryToList(self.movementCostOverride, self.gameDatabase.getIndexOfTerrainType), \
+		                self.__dictionaryToList(self.visionOverride, self.gameDatabase.getIndexOfTerrainType), \
+		                self.canSupply, \
+		                self.canCapture, \
+		                self.__dictionaryToList(self.transports, self.gameDatabase.getIndexOfUnitType), \
+		                self.maxTransportSlots)
+	#
+	
+	def __dictionaryToList(self, dictionary, getIndexFunction):
+		listOutput = []
+		for key in dictionary:
+			listOutput.extend([getIndexFunction(key), dictionary[key]])
+		return listOutput
+	#
+	
+	def fromStream(self, stream):
+		(self.name, \
+		 self.cost, \
+		 self.movementPoints, \
+		 self.vision, \
+		 self.maxHitpoints, \
+		 self.primaryDamage, \
+		 self.secondaryDamage, \
+		 self.maxAmmunition, \
+		 self.minRange, \
+		 self.maxRange, \
+		 self.canFireAfterMove, \
+		 self.canRetaliate, \
+		 self.movementCostOverride, \
+		 self.visionOverride, \
+		 self.canSupply, \
+		 self.canCapture, \
+		 self.transports, \
+		 self.maxTransportSlots) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, list, int)
+		
+		self.primaryDamage = self.__listToDictionary(self.primaryDamage, self.gameDatabase.getUnitType)
+		self.secondaryDamage = self.__listToDictionary(self.secondaryDamage, self.gameDatabase.getUnitType)
+		
+		self.movementCostOverride = self.__listToDictionary(self.movementCostOverride, self.gameDatabase.getTerrainType)
+		self.visionOverride = self.__listToDictionary(self.visionOverride, self.gameDatabase.getTerrainType)
+		
+		self.transports = self.__listToDictionary(self.transports, self.gameDatabase.getUnitType)
+	#
+	
+	def __listToDictionary(self, _list, getTypeFunction):
+		dictionaryOutput = {}
+		for i in xrange(0, len(_list), 2):
+			index = _list[i]
+			value = _list[i + 1]
+			dictionaryOutput[getTypeFunction(index)] = value
+		return dictionaryOutput
 	#
 #

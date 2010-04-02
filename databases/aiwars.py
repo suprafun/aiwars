@@ -26,15 +26,15 @@ database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, sho
 
 # name, cost, movementPoints, vision, maxAmmunition
 infantery  = UnitType('Infantery',     1000,   3,  2,  0, canCapture = True)
-mech       = UnitType('Mech',          1000,   3,  2,  0, canCapture = True)
-recon      = UnitType('Recon',         1000,   3,  2,  0)
-apc        = UnitType('APC',           1000,   3,  2,  0, canSupply = True)
-antiAir    = UnitType('Anti-Air',      1000,   3,  2,  0)
-tank       = UnitType('Tank',          1000,   3,  2,  0)
-mediumTank = UnitType('Medium Tank',   1000,   3,  2,  0)
-heavyTank  = UnitType('Heavy Tank',    1000,   3,  2,  0)
-artillery  = UnitType('Artillery',     1000,   3,  2,  0, minRange = 2, maxRange = 3, canFireAfterMove = False, canRetaliate = False)
-rocket     = UnitType('Rocket',        1000,   3,  2,  0, minRange = 3, maxRange = 5, canFireAfterMove = False, canRetaliate = False)
+mech       = UnitType('Mech',          3000,   2,  2,  3, canCapture = True)
+recon      = UnitType('Recon',         4000,   8,  5,  0)
+apc        = UnitType('APC',           5000,   6,  1,  0, canSupply = True)
+antiAir    = UnitType('Anti-Air',      8000,   6,  2,  9)
+tank       = UnitType('Tank',          7000,   6,  3,  9)
+mediumTank = UnitType('Medium Tank',  16000,   5,  1,  8)
+heavyTank  = UnitType('Heavy Tank',   22000,   6,  1,  9)
+artillery  = UnitType('Artillery',     6000,   5,  1,  9, minRange = 2, maxRange = 3, canFireAfterMove = False, canRetaliate = False)
+rocket     = UnitType('Rocket',       15000,   5,  1,  6, minRange = 3, maxRange = 5, canFireAfterMove = False, canRetaliate = False)
 # TODO: Ships, aircraft!
 
 # Add the unit types to the database
