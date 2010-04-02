@@ -19,6 +19,12 @@ rules.addRule('Mountain', 'rock_1.png', ( 1,  5, 12,  8))
 rules.addRule('Mountain', 'rock_2.png', ( 1,  4,  7,  5))
 rules.addRule('Mountain', 'rock_3.png', ( 1,  3, 15,  6))
 
+# Reef
+rules.setSpriteCount('Reef', 4, 8)
+rules.addRule('Reef', 'reef_1.png', (-1, -1,  8,  6))
+rules.addRule('Reef', 'reef_2.png', (-1, -1, 11,  8))
+rules.addRule('Reef', 'reef_3.png', (-1, -1,  8,  7))
+
 # City
 rules.setSpriteCount('City', 3, 5)
 rules.addRule('City', 'apartment_1.png', ( 0,  8, 16, 11))
