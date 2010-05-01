@@ -27,11 +27,7 @@ class Game(object):
 	#
 	
 	def getOtherPlayers(self, player):
-		otherPlayers = []
-		for otherPlayer in self.players:
-			if otherPlayer is not player:
-				otherPlayers.append(otherPlayer)
-		return otherPlayers
+		return [p for p in self.players if p != player]
 	#
 	
 	def getAllPlayers(self):

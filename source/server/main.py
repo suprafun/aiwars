@@ -11,7 +11,7 @@ from clientPlayerCheck import *
 
 class Main(object):
 	def __init__(self, host, port, levelfile, databasefile):
-		self.gameDatabase = GameDatabase();
+		self.gameDatabase = GameDatabase()
 		self.gameDatabase.loadFromFile('../databases/' + databasefile)
 		
 		self.game = Game(self.gameDatabase)
@@ -41,6 +41,7 @@ class Main(object):
 		
 		# Listen for game-specific messages - the callbacks are wrapped in a small class that checks if the clients player is the active player, so the real callback will not be called
 		# if a client sends messages while it's not it's turn. The client will receive a SERVER_RESULT_NOT_YOUR_TURN message in that case.
+		# The player controllers will 
 		self.gameServer.setCallbackForMessageType(CTS_MOVE_UNIT, ClientPlayerCheck(self, self.onClientMoveCommand))
 		self.gameServer.setCallbackForMessageType(CTS_UNLOAD_UNIT, ClientPlayerCheck(self, self.onClientUnloadCommand))
 		self.gameServer.setCallbackForMessageType(CTS_SUPPLY_SURROUNDING_UNITS, ClientPlayerCheck(self, self.onClientSupplySurroundingUnitsCommand))
@@ -143,4 +144,7 @@ class Main(object):
 	def onClientEndTurnCommand(self, client, message):
 		self.controllers[client].onEndTurnCommand(message)
 	#
+	
+	
+	# Replies
 #

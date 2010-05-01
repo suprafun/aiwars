@@ -15,6 +15,7 @@ CTS_BUILD_UNIT                = chr(7)   # Builds the specified unit type
 CTS_CAPTURE_BUILDING          = chr(8)   # Captures a building
 CTS_HIDE_UNIT                 = chr(9)   # Hides or unhides the unit
 CTS_END_TURN                  = chr(10)  # Signals that this client is done with it's turn
+# TODO: Add a 'destroy unit' command?
 
 
 #================================================================================
@@ -29,14 +30,13 @@ STC_START_GAME                = chr(3)   # Informs clients that the game has sta
 # While the game is going
 STC_START_TURN                = chr(4)   # Tells a client that it is it's turn
 STC_END_TURN                  = chr(5)   # Tells a client that it's turn is over
-STC_SITUATION_UPDATE          = chr(6)   # Sends the latest situation data to the client - only what this client can see!
+STC_SITUATION_UPDATE          = chr(6)   # Sends situation changes to the client - only changes that this client can see! (observer clients can always see every change)
 STC_RESULT                    = chr(7)   # Sends the result of the latest command, see SERVER_RESULT_...
 STC_END_GAME                  = chr(8)   # Informs clients that the game is over
 
 # While the game is going, observer-specific messages
 STC_PLAYER_STARTED_TURN       = chr(9)   # Tells an observer which players turn has started
 STC_PLAYER_ENDED_TURN         = chr(10)  # Tells an observer which players turn has ended
-STC_FULL_SITUATION_UPDATE     = chr(11)  # Complete situation update - observers know everything
 
 
 #================================================================================

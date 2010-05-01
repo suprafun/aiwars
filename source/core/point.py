@@ -13,6 +13,10 @@ class Point(object):
 		self.y = other.y
 	#
 	
+	def __copy__(self):
+		return Point(self.x, self.y)
+	#
+	
 	# + operator
 	def __add__(self, other):
 		return Point(self.x + other.x, self.y + other.y)

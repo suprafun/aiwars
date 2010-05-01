@@ -1,19 +1,19 @@
+import copy
 from unitType import *
 from serialization import *
 
 
 class Unit(object):
-	# Creates a new unit, of a given type, at the specified position. Units keep a reference to the level instance that they're located on, in order to check their surroundings.
-	def __init__(self, gameDatabase, type, id, position, level, player):
-		self.gameDatabase = gameDatabase
+	# Creates a new unit, of a given type, at the specified position. Units use the GameDatabase and the Level reference in the given Game instance.
+	def __init__(self, game, type, id, position, player):
+		self.game = game
 		self.type = type
 		self.id = id
-		self.level = level
 		self.player = player
 		
-		self.hitpoints = self.type.maxHitpoints
+		self.hitpoints = self.type.maxHitpoints if self.type != None else 10
 		self.position = position
-		self.ammunition = self.type.maxAmmunition
+		self.ammunition = self.type.maxAmmunition if self.type != None else 0
 		
 		self.loadedUnits = []
 		self.carriedBy = None
@@ -25,7 +25,11 @@ class Unit(object):
 	
 	# Returns the current vision range, taking terrain type into account.
 	def currentVision(self):
-		return self.type.visionOn(self.level.getTerrainType(self.position))
+		return self.type.visionOn(self.game.level.getTerrainType(self.position))
+	#
+	
+	def currentStealthDetectionRange(self):
+		return self.type.stealthDetectionRange
 	#
 	
 	# Returns the movement cost for the given terrain type.
@@ -34,10 +38,11 @@ class Unit(object):
 	#
 	
 	# Move to the specified position, instantly (route checking is up to the player). Also moves all units that are being transported.
-	def moveTo(self, position):
+	def moveTo(self, position, useFuel = True):
 		self.position.set(position)
+		# TODO: Subtract fuel!
 		for unit in self.transports:
-			unit.moveTo(position)
+			unit.moveTo(position, False)
 	#
 	
 	# Returns True if this unit is currently transporting one or more units.
@@ -100,6 +105,7 @@ class Unit(object):
 			self.loadedUnits.append(unit)
 			unit.carriedBy = self
 			unit.moveTo(self.position)
+			unit.resupply()
 	#
 	
 	# Unload the specified unit at the given destination.
@@ -115,9 +121,21 @@ class Unit(object):
 		return self.carriedBy != None
 	#
 	
+	# Does this unit need any supplies?
+	def needsResupply(self):
+		return self.ammunition < self.type.maxAmmunition
+		# TODO: Or when missing some fuel!
+	#
+	
 	# Fully restores this units ammunition supply.
 	def resupply(self):
 		self.ammunition = self.type.maxAmmunition
+		# TODO: Resupply fuel too!
+	#
+	
+	# Is this unit damaged?
+	def needsRepair(self):
+		return self.hitpoints < self.type.maxHitpoints
 	#
 	
 	# Repairs this unit and returns the number of hitpoints that were actually repaired. A unit can not be repaired beyond it's maximum number of hitpoints.
@@ -167,9 +185,9 @@ class Unit(object):
 	# Apply damage to this unit. Terrain cover will be taken into account, so there may be less actual damage dealt. Returns the actual damage done.
 	def applyDamage(self, damage):
 		# Take cover into account - each cover point reduces incoming damage by 10%. Reductions beyond 100% are capped to 100% (e.g. more cover does not result in healing)
-		finalDamage = max(0, round(damage - (damage * self.level.getTerrainType(self.position).cover * 0.1)))
+		finalDamage = max(0, int(round(damage - (damage * self.game.level.getTerrainType(self.position).cover * 0.1))))
 		previousHitpoints = self.hitpoints
-		self.hitpoints = max(0, self.hitpoints - finalDamage)
+		self.hitpoints = int(max(0, self.hitpoints - finalDamage))
 		return previousHitpoints - self.hitpoints
 	#
 	
@@ -248,58 +266,83 @@ class Unit(object):
 		self.loadedUnits = []
 	#
 	
+	# Special method, called when making a shallow copy
+	def __copy__(self):
+		unit = Unit(self.game, self.type, self.id, copy.copy(self.position), self.player)
+		
+		unit.hitpoints = self.hitpoints
+		unit.ammunition = self.ammunition
+		
+		unit.loadedUnits = self.loadedUnits[:]
+		unit.carriedBy = self.carriedBy
+		
+		unit.hiding = self.hiding
+		
+		unit.captureTarget = self.captureTarget
+		
+		return unit
+	#
 	
-	# Serialization
-	def toStream(self):
-		carriedByID = -1
+	
+	# Serialization - certain variables can be hidden, such as which units are carried - used during fog-of-war matches.
+	# This does not change the serialized data layout, it just writes empty lists and zeroes instead of the actual values.
+	# The clients should know that such data is not disclosed during fog-of-war matches.
+	# Note that the game variable is not serialized, and references to other objects are turned into IDs or indices.
+	def toStream(self, hideInformation):
+		carriedByID = 0
 		if self.carriedBy != None:
 			carriedByID = self.carriedByID.id
 		
-		captureTarget = -1
+		captureTargetID = 0
 		if self.captureTarget != None:
-			captureTarget = self.captureTarget.id
+			captureTargetID = self.captureTarget.id
 		
-		return toStream(self.gameDatabase.getIndexOfUnitType(self.type), \
+		loadedUnitIDs = [unit.id for unit in self.loadedUnits]
+		if hideInformation:
+			loadedUnitIDs = []
+		
+		return toStream(self.game.gameDatabase.getIndexOfUnitType(self.type), \
 		                self.id, \
 		                self.player.id, \
 		                self.hitpoints, \
 		                self.position.x, \
 		                self.position.y, \
 		                self.ammunition, \
-		                [unit.id for unit in self.loadedUnits], \
+		                loadedUnitIDs, \
 		                carriedByID, \
 		                self.hiding, \
-		                captureTarget)
+		                captureTargetID)
 	#
 	
+	# All but the game variable will be deserialized.
 	def fromStream(self, stream):
-		(self.type, \
+		(typeIndex, \
 		 self.id, \
-		 self.player, \
+		 playerID, \
 		 self.hitpoints, \
 		 self.position.x, \
 		 self.position.y, \
 		 self.ammunition, \
-		 self.loadedUnits, \
-		 self.carriedBy, \
+		 loadedUnitIDs, \
+		 carriedByID, \
 		 self.hiding, \
-		 self.captureTarget, \
+		 captureTargetID, \
 		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, int, list, int, bool, int)
 		
-		self.type = self.gameDatabase.getUnitType(self.type)
-		self.player = game.getPlayerByID(self.player)
+		self.type = self.game.gameDatabase.getUnitType(typeIndex)
+		self.player = self.game.getPlayerByID(playerID)
 		
-		self.loadedUnits = [self.player.getUnitByID(unitID) for unitID in self.loadedUnits]
+		self.loadedUnits = [self.player.getUnitByID(unitID) for unitID in loadedUnitIDs]
 		
-		if self.carriedBy == -1:
+		if carriedByID == 0:
 			self.carriedBy = None
 		else:
-			self.carriedBy = self.player.getUnitByID(self.carriedBy)
+			self.carriedBy = self.player.getUnitByID(carriedByID)
 		
-		if self.captureTarget == -1:
+		if captureTargetID == 0:
 			self.captureTarget = None
 		else:
-			self.captureTarget = self.player.game.getBuildingByID(self.captureTarget)
+			self.captureTarget = self.player.game.getBuildingByID(captureTargetID)
 		
 		return readBytesCount
 	#

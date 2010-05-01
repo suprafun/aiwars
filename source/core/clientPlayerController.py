@@ -27,12 +27,23 @@ class ClientPlayerController(object):
 	#
 	
 	
+	#================================================================================
+	# Messages sent to the client
+	
+	# Player callbacks
 	def onPlayerStartsTurn(self, player):
-		self.client.sendMessage(STC_START_TURN, '')
+		if player == self.player:
+			self.client.sendMessage(STC_START_TURN, '')
 	#
 	
 	def onPlayerEndsTurn(self, player):
-		self.client.sendMessage(STC_END_TURN, '')
+		if player == self.player:
+			self.client.sendMessage(STC_END_TURN, '')
+	#
+	
+	def sendSituationUpdate(self, players, level):
+		# TODO!!!
+		pass
 	#
 	
 	
@@ -68,55 +79,56 @@ class ClientPlayerController(object):
 		(unitID, route, readBytesCount) = fromStream(message, int, list)
 		route = self.__intListToPointList(route)
 		
-		result = self.player.moveUnit(unitID, route)
+		(result, situationUpdate) = self.player.moveUnit(unitID, route)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.client.sendMessage(STC_SITUATION_UPDATE, '''TODO!!!''') # Check if new units became visible!
 	#
 	
 	def onUnloadCommand(self, message):
 		(unitID, destinationX, destinationY, readBytesCount) = fromStream(message, int, int, int)
 		destination = Point(destinationX, destinationY)
 		
-		result = self.player.unloadUnit(unitID, destination)
+		(result, situationUpdate) = self.player.unloadUnit(unitID, destination)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onSupplySurroundingUnitsCommand(self, message):
 		(unitID, readBytesCount) = fromStream(message, int)
 		
-		result = self.player.supplySurroundingUnits(unitID)
+		(result, situationUpdate) = self.player.supplySurroundingUnits(unitID)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onAttackUnitCommand(self, message):
 		(unitID, targetID, readBytesCount) = fromStream(message, int, int)
 		
-		result = self.player.attackUnit(unitID, targetID)
+		(result, situationUpdate) = self.player.attackUnit(unitID, targetID)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onBuildUnitCommand(self, message):
 		(buildingID, unitTypeID, readBytesCount) = fromStream(message, int, int)
 		
-		result = self.player.buildUnit(buildingID, unitTypeID)
+		(result, situationUpdate) = self.player.buildUnit(buildingID, unitTypeID)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onCaptureBuildingCommand(self, message):
 		(unitID, readBytesCount) = fromStream(message, int)
 		
-		result = self.player.captureBuilding(unitID)
+		(result, situationUpdate) = self.player.captureBuilding(unitID)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onHideUnitCommand(self, message):
 		(unitID, hide, readBytesCount) = fromStream(message, int, bool)
 		
-		result = self.player.hideUnit(unitID, hide)
+		(result, situationUpdate) = self.player.hideUnit(unitID, hide)
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	
 	def onEndTurnCommand(self, message):
-		result = self.player.endTurn()
+		(result, situationUpdate) = self.player.endTurn()
 		self.client.sendMessage(STC_RESULT, resultToMessage[result])
 	#
 	

@@ -1,18 +1,18 @@
+import copy
 from buildingType import *
 from serialization import *
 
 
 class Building(object):
-	def __init__(self, game, gameDatabase, type, id, position, player):
+	def __init__(self, game, type, id, position, player):
 		self.game = game
-		self.gameDatabase = gameDatabase
 		self.type = type
 		self.id = id
 		self.position = position
 		
 		self.player = player
 		
-		self.capturePoints = self.type.maxCapturePoints
+		self.capturePoints = self.type.maxCapturePoints if self.type != None else 20
 	#
 	
 	def canBuild(self, unitType):
@@ -33,7 +33,7 @@ class Building(object):
 	
 	#Some units can capture buildings. This function returns true if the building has been fully captured.
 	def capture(self, amount):
-		self.capturePoints = max(0, self.capturePoints - amount)
+		self.capturePoints = int(max(0, self.capturePoints - amount))
 		return self.capturePoints == 0
 	#
 	
@@ -41,14 +41,23 @@ class Building(object):
 		self.capturePoints = self.type.maxCapturePoints
 	#
 	
+	# Special method, called when making a shallow copy
+	def __copy__(self):
+		building = Building(self.game, self.type, self.id, copy.copy(self.position), self.player)
+		
+		building.capturePoints = self.capturePoints
+		
+		return building
+	#
+	
 	
 	# Serialization
-	def toStream(self):
-		playerID = -1
+	def toStream(self, hideInformation):
+		playerID = 0
 		if self.player != None:
 			playerID = self.player.id
 		
-		return toStream(self.gameDatabase.getIndexOfBuildingType(self.type), \
+		return toStream(self.game.gameDatabase.getIndexOfBuildingType(self.type), \
 		                self.id, \
 		                self.position.x, \
 		                self.position.y, \
@@ -57,16 +66,16 @@ class Building(object):
 	#
 	
 	def fromStream(self, stream):
-		(self.type, \
+		(typeIndex, \
 		 self.id, \
 		 self.position.x, \
 		 self.position.y, \
-		 self.player, \
+		 playerID, \
 		 self.capturePoints, \
 		 readBytesCount) = fromStream(stream, int, int, int, int, int, int)
 		
-		self.type = self.gameDatabase.getBuildingType(self.type)
-		self.player = self.game.getPlayerByID(self.player)
+		self.type = self.game.gameDatabase.getBuildingType(typeIndex)
+		self.player = self.game.getPlayerByID(playerID)
 		
 		return readBytesCount
 	#

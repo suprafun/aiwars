@@ -7,8 +7,9 @@ class UnitType(object):
 		
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
 		self.cost = cost                                # How expensive this unit type is to construct.
-		self.movementPoints = movementPoints            # How many movement points this unit has (some tiles take cost points to cross than others).
+		self.movementPoints = movementPoints            # How many movement points this unit has (some tiles cost more points to cross than others).
 		self.vision = vision                            # How far this unit can see.
+		self.stealthDetectionRange = 1					# Stealth detection range - 1 by default. Scanners could have a higher range
 		self.maxHitpoints = maxHitpoints                # Maximum number of hitpoints. Usually 10.
 		
 		self.primaryDamage = {}                         # Primary damage dealt against other unit types, uses ammunition.
@@ -29,6 +30,8 @@ class UnitType(object):
 		
 		self.transports = {}                            # The unit types that can be transported, and how much room they occupy.
 		self.maxTransportSlots = 0                      # Maximum transport capacity (some units can take up multiple slots).
+		
+		# TODO: Add fuel capacity, fuel usage per turn and needs-fuel-to-stay-alive flag!
 	#
 	
 	def setDamageAgainst(self, unitType, primaryDamage, secondaryDamage):

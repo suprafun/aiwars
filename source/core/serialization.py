@@ -3,6 +3,7 @@ import struct
 
 # This method makes it convenient to pack multiple objects into a struct.
 # It can handle booleans, integers, strings and integer lists.
+# Note that data is stored in big-endian.
 def toStream(*variables):
 	format = '>'
 	content = []
@@ -27,13 +28,14 @@ def toStream(*variables):
 			content.append(variableLength)
 			content.extend(variable)
 		else:
-			print 'Unsupported type, can\'t write to stream!'
+			print 'Unsupported type (' + str(variableType) + '), can\'t write to stream!'
 	
 	return struct.pack(format, *content)
 #
 
 # This method reads the stream according to the expected types, in their respective order. In addition to the expected types, it also returns the number of read bytes.
 # For example, when called with (stream, str, int, list), it will return a tuple that contains a string, an int, a list containing integers and an int that indicates how many bytes were read.
+# Big-endian is expected.
 def fromStream(stream, *types):
 	content = []
 	

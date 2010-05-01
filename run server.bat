@@ -2,6 +2,6 @@ TITLE AI Wars - Server
 
 CD source
 
-run_server.py localhost 7777 central_island.aws aiwars.py
+python run_server.py localhost 7777 river_bridges.aws aiwars.py
 
 PAUSE

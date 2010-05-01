@@ -58,7 +58,7 @@ class Level(object):
 				self.terrain[y][x] = terrainType
 				
 				if terrainType.buildingType != None:
-					self.addBuilding(Building(self.game, self.gameDatabase, terrainType.buildingType, getGUID(), Point(x, y), None))
+					self.addBuilding(Building(self.game, terrainType.buildingType, getGUID(), Point(x, y), None))
 	#
 	
 	def addBuilding(self, building):
@@ -114,7 +114,7 @@ class Level(object):
 		
 		buildingsStream = ''
 		for building in self.buildings:
-			buildingsStream += building.toStream()
+			buildingsStream += building.toStream(False)
 		
 		return toStream(self.name, \
 		                self.author, \
@@ -138,7 +138,7 @@ class Level(object):
 		self.buildings = []
 		for i in xrange(buildingsCount):
 			# TODO: Instead of having to create a Building instance with some default type, construct one directly from a stream?
-			building = Building(self.game, self.gameDatabase, self.gameDatabase.getBuildingType(0), 0, Point(0, 0), None)
+			building = Building(self.game, self.gameDatabase.getBuildingType(0), 0, Point(0, 0), None)
 			readBytesCount += building.fromStream(stream[readBytesCount:])
 			self.buildings.append(building)
 		

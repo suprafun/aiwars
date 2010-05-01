@@ -107,3 +107,64 @@ Oh, situation update should also tell the player how much money he has.
 
 
 A full situation update, towards observers, should tell them how much money every player has.
+
+
+
+
+
+
+
+
+
+
+server: has multiple clientPlayerControllers (RENAME to clientController!)
+
+
+
+right now, the game tells a player that it's his turn.
+
+it's clientPlayerController is listening for callbacks,
+and will be informed when it can start - it will send
+a message to it's client.
+
+clientPlayerControllers react to AI client input by
+calling methods on their player, and they send a message
+back based on the result.
+
+The main code will intercept incoming messages however,
+if they're sent by a client who can't move (it's not his turn yet).
+
+
+the player functions will return a (result, Diff) tuple,
+where Diff is a SituationDiff object that contains a number
+of lists: added units, modified units, removed units.
+
+NOTE: How to deal with changed state? only position updates and hiding/
+unhiding are particularly important, hmm? we need to know the previous
+state somehow!!!
+
+perhaps only keep track of previous and current position,
+and let clients do the rest of the diffing? so clients are
+only updated about units that have disappeared from their
+original location and have reappeared somewhere else (or
+have disappeared only, or appeared only).
+
+
+
+So, build a UnitUpdate object as a return value for every command.
+NOTE: Some commands affect multiple units! Attack commands, for example,
+can leave both units damaged (but not moved). Movement commands can
+move multiple units at once (transported units)!
+
+
+
+
+The server code receives a SituationUpdate from the command that it called,
+and it then asks the game to give a player-specific SituationUpdate for
+each player - which it will send to those player clients. The unfiltered
+SituationUpdate will be sent to all observers.
+
+This player-specific SituationUpdate should include all opponent units/buildings
+that have become visible or hidden! I should write a utility function in the
+Player class for this - one that updates the visibility/stealth detection maps
+and that extracts a list of new visible and no-longer-visible units/buildings.
