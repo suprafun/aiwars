@@ -57,8 +57,15 @@ class Main(object):
 				player = self.game.addPlayer(controller.name, getGUID())
 				controller.setPlayer(player)
 		
+		playerData = toStream(len(self.game.getAllPlayers()))
+		for player in self.game.getAllPlayers():
+			playerData += player.toStream(False)
+		
 		for controller in self.playerControllers:
-			controller.startGame('')
+			controller.startGame(toStream(controller.player.id) + playerData)
+		
+		for controller in self.observerControllers:
+			controller.startGame(toStream(0) + playerData)
 		
 		self.game.start()
 	#

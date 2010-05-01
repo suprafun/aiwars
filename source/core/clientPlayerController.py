@@ -32,13 +32,11 @@ class ClientPlayerController(object):
 	
 	# Player callbacks
 	def onPlayerStartsTurn(self, player):
-		if player == self.player:
-			self.client.sendMessage(STC_START_TURN, '')
+		self.client.sendMessage(STC_START_TURN, toStream(player.id))
 	#
 	
 	def onPlayerEndsTurn(self, player):
-		if player == self.player:
-			self.client.sendMessage(STC_END_TURN, '')
+		self.client.sendMessage(STC_END_TURN, toStream(player.id))
 	#
 	
 	def sendSituationUpdate(self, players, level):
@@ -80,8 +78,7 @@ class ClientPlayerController(object):
 		route = self.__intListToPointList(route)
 		
 		(result, situationUpdate) = self.player.moveUnit(unitID, route)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
-		self.client.sendMessage(STC_SITUATION_UPDATE, '''TODO!!!''') # Check if new units became visible!
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onUnloadCommand(self, message):
@@ -89,47 +86,47 @@ class ClientPlayerController(object):
 		destination = Point(destinationX, destinationY)
 		
 		(result, situationUpdate) = self.player.unloadUnit(unitID, destination)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onSupplySurroundingUnitsCommand(self, message):
 		(unitID, readBytesCount) = fromStream(message, int)
 		
 		(result, situationUpdate) = self.player.supplySurroundingUnits(unitID)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onAttackUnitCommand(self, message):
 		(unitID, targetID, readBytesCount) = fromStream(message, int, int)
 		
 		(result, situationUpdate) = self.player.attackUnit(unitID, targetID)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onBuildUnitCommand(self, message):
 		(buildingID, unitTypeID, readBytesCount) = fromStream(message, int, int)
 		
 		(result, situationUpdate) = self.player.buildUnit(buildingID, unitTypeID)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onCaptureBuildingCommand(self, message):
 		(unitID, readBytesCount) = fromStream(message, int)
 		
 		(result, situationUpdate) = self.player.captureBuilding(unitID)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onHideUnitCommand(self, message):
 		(unitID, hide, readBytesCount) = fromStream(message, int, bool)
 		
 		(result, situationUpdate) = self.player.hideUnit(unitID, hide)
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def onEndTurnCommand(self, message):
 		(result, situationUpdate) = self.player.endTurn()
-		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		self.__handleResultAndSituationUpdate(result, situationUpdate)
 	#
 	
 	def __intListToPointList(self, intList):
@@ -137,6 +134,18 @@ class ClientPlayerController(object):
 		for i in xrange(0, len(intList), 2):
 			pointList.append(Point(intList[i], intList[i + 1]))
 		return pointList
+	#
+	
+	def __handleResultAndSituationUpdate(self, result, situationUpdate):
+		self.client.sendMessage(STC_RESULT, resultToMessage[result])
+		
+		if situationUpdate != None:
+			# TODO: Ask the game to provide filtered versions for each player and observer, and then send
+			# each the version that they need!!!
+			print 'Sending situation update!'
+			for playerUpdate in situationUpdate.playerUpdates.itervalues():
+				print 'Contains player', playerUpdate.player.id
+			self.client.sendMessage(STC_SITUATION_UPDATE, situationUpdate.toStream())
 	#
 	
 	#================================================================================

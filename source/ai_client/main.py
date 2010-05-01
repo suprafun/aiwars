@@ -9,6 +9,7 @@ from core.serialization import *
 class Main(object):
 	def __init__(self, host, port, name):
 		self.name = name
+		self.playerID = 0
 		
 		self.gameDatabase = GameDatabase();
 		self.game = Game(self.gameDatabase)
@@ -45,6 +46,12 @@ class Main(object):
 	#
 	
 	def onStartGame(self, message):
+		self.playerID, playerCount, totalReadBytes = fromStream(message, int, int)
+		for i in xrange(playerCount):
+			# TODO: Change game.addPlayer to accept a Player object instead of a name and id!
+			player = Player(self.game, '', 0)
+			totalReadBytes += player.fromStream(message[totalReadBytes:])
+			self.game.addPlayer(player.name, player.id)
 		print 'Start the game!'
 		
 		# Stop listening for pre-game data
@@ -64,8 +71,19 @@ class Main(object):
 	
 	# Game-specific messages
 	def onStartTurn(self, message):
-		print 'Starting turn!'
-		self.gameClient.sendMessageToServer(CTS_END_TURN, '')
+		(playerID, readBytes) = fromStream(message, int)
+		self.game.activePlayer = self.game.getPlayerByID(playerID)
+		
+		if playerID == self.playerID:
+			print 'Starting turn!'
+			print 'TESTING: Run any code you want! (x = terminate this loop!)'
+			while True:
+				codeString = raw_input('Run code:')
+				if codeString == 'x':
+					break
+				else:
+					print eval(codeString)
+		#self.gameClient.sendMessageToServer(CTS_END_TURN, '')
 		pass
 	#
 	
@@ -75,7 +93,11 @@ class Main(object):
 	#
 	
 	def onSituationUpdate(self, message):
+		situationUpdate = SituationUpdate(self.game)
+		situationUpdate.fromStream(message)
 		print 'Situation update!'
+		for playerUpdate in situationUpdate.playerUpdates.itervalues():
+			print 'Player', playerUpdate.player.id, 'had', playerUpdate.oldMoneyAmount, 'and now has', playerUpdate.newMoneyAmount, 'money'
 		pass
 	#
 	

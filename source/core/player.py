@@ -39,6 +39,7 @@ class Player(object):
 		# Listeners should implement the following methods:
 		# onPlayerStartsTurn(player)
 		# onPlayerEndsTurn(player)
+		# NOTE: The following one is deprecated!!!
 		# onPlayerSituationUpdate(player, situationUpdate)
 		self.__listeners = []
 	#
@@ -134,12 +135,15 @@ class Player(object):
 			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
 	#
 	
-	
+	# NOTE: Not used? Current approach is to let each command function return a situation update, which is then handled by the caller.
+	# No more listener-informing when it comes to situation updates!
+	'''
 	# Informs this player about the movement of another players units.
 	def situationUpdate(self, situationUpdate):
 		for listener in self.__listeners:
 			listener.onPlayerSituationUpdate(situationUpdate)
 	#
+	'''
 	
 	def startTurn(self):
 		situationUpdate = SituationUpdate(self.game)
@@ -528,5 +532,24 @@ class Player(object):
 				if x >= 0 and y >= 0 and x < self.game.level.width() and y < self.game.level.height():
 					oldValue = self.__stealthDetectedTiles[y][x]
 					self.__stealthDetectedTiles[y][x] += modifier
+	#
+	
+	
+	# Serialization - these functions are only used to send player information to clients.
+	# Only the player ID and name are sent. hideinformation is only there for consistency with other toStream functions,
+	# and currently serves no purpose.
+	def toStream(self, hideInformation):
+		return toStream(self.id, \
+		                self.name)
+		# TODO: Also send units and buildings along?
+	#
+	
+	# All but the game variable will be deserialized.
+	def fromStream(self, stream):
+		(self.id, \
+		 self.name, \
+		 readBytesCount) = fromStream(stream, int, str)
+		
+		return readBytesCount
 	#
 #

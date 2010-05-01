@@ -170,7 +170,7 @@ class SituationUpdate(object):
 		
 		(playerCount, totalReadBytesCount) = fromStream(stream, int)
 		
-		for i in playerCount:
+		for i in xrange(playerCount):
 			playerUpdate = PlayerUpdate(self.game, None)
 			readBytesCount = playerUpdate.fromStream(stream[totalReadBytesCount:])
 			totalReadBytesCount += readBytesCount

@@ -106,6 +106,12 @@ class Main:
 	#
 	
 	def onStartGame(self, message):
+		self.playerID, playerCount, totalReadBytes = fromStream(message, int, int)
+		for i in xrange(playerCount):
+			# TODO: Change game.addPlayer to accept a Player object instead of a name and id!
+			player = Player(self.game, '', 0)
+			totalReadBytes += player.fromStream(message[totalReadBytes:])
+			self.game.addPlayer(player.name, player.id)
 		print 'Start the game!'
 		
 		# Stop listening for pre-game data
