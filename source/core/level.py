@@ -27,10 +27,18 @@ class Level(object):
 		self.author = 'Unknown'
 		self.description = 'No description'
 		self.supportedDatabases = []
-		self.playersData = []
+		self.playersData = {}
 		
 		self.terrain = []
 		self.buildings = []
+	#
+	
+	def getBuildingsForPlayerNumber(self, playerNumber):
+		return self.playersData.values()[playerNumber].buildings
+	#
+	
+	def getUnitsForPlayerNumber(self, playerNumber):
+		return self.playersData.values()[playerNumber].units
 	#
 	
 	def loadFromFile(self, filename):
@@ -65,10 +73,11 @@ class Level(object):
 		self.buildings.append(building)
 	#
 	
-	def addPlayer(self):
-		playerData = LevelPlayerData()
-		self.playersData.append(playerData)
-		return playerData
+	def getPlayerData(self, team):
+		if not self.playersData.has_key(team):
+			playerData = LevelPlayerData()
+			self.playersData[team] = playerData
+		return self.playersData[team]
 	#
 	
 	def getPlayersCount(self):

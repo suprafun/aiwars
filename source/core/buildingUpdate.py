@@ -1,5 +1,6 @@
 import copy
 from building import *
+from point import *
 from serialization import *
 
 
@@ -42,7 +43,7 @@ class BuildingUpdate(object):
 		
 		self.oldBuilding, readBytesCount = self.__buildingFromStream(stream[totalReadBytesCount:], oldBuildingID)
 		totalReadBytesCount += readBytesCount
-		self.newBuilding, readBytesCount = self.__buildingFromStreamFromStream(stream[totalReadBytesCount:], newBuildingID)
+		self.newBuilding, readBytesCount = self.__buildingFromStream(stream[totalReadBytesCount:], newBuildingID)
 		totalReadBytesCount += readBytesCount
 		
 		return totalReadBytesCount
@@ -52,7 +53,7 @@ class BuildingUpdate(object):
 		if buildingID == 0:
 			return (None, 0)
 		else:
-			building = Building(self.game.gameDatabase, None, 0, Point(0, 0), None)
+			building = Building(self.game, None, 0, Point(0, 0), None)
 			readBytesCount = building.fromStream(stream)
 			return (building, readBytesCount)
 	#

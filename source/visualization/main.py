@@ -7,6 +7,7 @@ from core.gameDatabase import *
 from core.gameClient import *
 from core.messageTypes import *
 from core.serialization import *
+from core.situationUpdate import *
 from gameScreen import *
 from imageCache import *
 
@@ -123,7 +124,7 @@ class Main:
 		# Start listening for observer-specific messages
 		self.gameClient.setCallbackForMessageType(STC_PLAYER_STARTED_TURN, self.onPlayerStartedTurn)
 		self.gameClient.setCallbackForMessageType(STC_PLAYER_ENDED_TURN, self.onPlayerEndedTurn)
-		self.gameClient.setCallbackForMessageType(STC_FULL_SITUATION_UPDATE, self.onFullSituationUpdate)
+		self.gameClient.setCallbackForMessageType(STC_SITUATION_UPDATE, self.onSituationUpdate)
 	#
 	
 	
@@ -138,8 +139,13 @@ class Main:
 		pass
 	#
 	
-	def onFullSituationUpdate(self, message):
+	def onSituationUpdate(self, message):
+		situationUpdate = SituationUpdate(self.game)
+		situationUpdate.fromStream(message)
 		print 'Full situation update!'
+		print len(situationUpdate.playerUpdates), 'players involved:'
+		for player, playerUpdate in situationUpdate.playerUpdates.iteritems():
+			print 'player', player.id, 'has', len(playerUpdate.unitUpdates), 'unit updates and', len(playerUpdate.buildingUpdates), 'building updates'
 		pass
 	#
 #

@@ -167,8 +167,7 @@ class ClientPlayerController(object):
 		self.client.sendMessage(STC_START_GAME, message)
 	#
 	
-	# Player-specific
-	
-	
-	# Observer-specific
+	def sendSituationUpdate(self, message):
+		self.client.sendMessage(STC_SITUATION_UPDATE, message)
+	#
 #

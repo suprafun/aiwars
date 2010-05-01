@@ -98,7 +98,7 @@ class Player(object):
 		self.units.append(unit)
 		unit.player = self
 		
-		self.unitIsFinished(newUnit)
+		self.unitIsFinished(unit)
 		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
 	#
 	

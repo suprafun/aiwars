@@ -26,17 +26,17 @@ class PlayerUpdate(object):
 	
 	
 	def toStream(self, hideInformation):
-		stream = toStream(player.id, \
+		stream = toStream(self.player.id, \
 		                  self.oldMoneyAmount if not hideInformation else 0, \
 		                  self.newMoneyAmount if not hideInformation else 0, \
 		                  len(self.unitUpdates), \
 		                  len(self.buildingUpdates))
 		
 		for unitUpdate in self.unitUpdates:
-			stream += unitUpdate.toStream()
+			stream += unitUpdate.toStream(hideInformation)
 		
 		for buildingUpdate in self.buildingUpdates:
-			stream += buildingUpdate.toStream()
+			stream += buildingUpdate.toStream(hideInformation)
 		
 		return stream
 	#

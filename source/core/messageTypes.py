@@ -25,7 +25,7 @@ CTS_END_TURN                  = chr(10)  # Signals that this client is done with
 STC_DATABASE_DATA             = chr(0)   # Sends terrain, unit and building data to the client
 STC_MAP_DATA                  = chr(1)   # Sends level data to the client
 STC_GAME_DATA                 = chr(2)   # Sends game rule data to the client
-STC_START_GAME                = chr(3)   # Informs clients that the game has started
+STC_START_GAME                = chr(3)   # Informs clients that the game has started, also contains all player ID and name information, and what player ID this client has
 
 # While the game is going
 STC_START_TURN                = chr(4)   # Tells a client that it is it's turn

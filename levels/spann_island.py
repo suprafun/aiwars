@@ -22,14 +22,14 @@ level.setTileData( [[7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7],
 
 #================================================================================
 # Player starting buildings
-player1 = level.addPlayer()
+player1 = level.getPlayerData(0)
 player1.addBuilding(level.getBuildingAtPosition(Point(1, 5)))
 player1.addBuilding(level.getBuildingAtPosition(Point(1, 6)))
 player1.addBuilding(level.getBuildingAtPosition(Point(2, 6)))
 player1.addBuilding(level.getBuildingAtPosition(Point(2, 7)))
 player1.addBuilding(level.getBuildingAtPosition(Point(3, 7)))
 
-player2 = level.addPlayer()
+player2 = level.getPlayerData(1)
 player2.addBuilding(level.getBuildingAtPosition(Point(11, 1)))
 player2.addBuilding(level.getBuildingAtPosition(Point(13, 1)))
 player2.addBuilding(level.getBuildingAtPosition(Point(12, 2)))

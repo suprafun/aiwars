@@ -36,6 +36,30 @@ class GameScreen:
 		self.tooltip = TextBox(Point(0, 0), Point(0, 0), '', fontsize = 14, color = (255, 255, 225))
 		self.tooltip.visible = False
 		#self.tooltip.label.antiAliasing = False
+		
+		# Unit visualization
+		unitTypeNameToTexture = {'Infantery': 'infantery',
+		                         'Mech': 'mech',
+		                         'Recon': 'recon',
+		                         'APC': 'apc',
+		                         'Anti-Air': 'antiair',
+		                         'Tank': 'tank',
+		                         'Medium Tank': 'mediumtank',
+		                         'Heavy Tank': 'heavytank',
+		                         'Artillery': 'artillery',
+		                         'Rockets': 'rockets',
+		                         'Missiles': 'missiles',
+		                         'Fighter': 'fighter',
+		                         'Bomber': 'bomber',
+		                         'Battle copter': 'battlecopter',
+		                         'Transport copter': 'transportcopter',
+		                         'Battleship': 'battleship',
+		                         'Cruiser': 'cruiser',
+		                         'Lander': 'lander',
+		                         'Sub': 'sub'}
+		self.unitImages = {}
+		for unitTypeName, textureName in unitTypeNameToTexture.iteritems():
+			self.unitImages[unitTypeName] = self.imageCache.getImage('../textures/units/' + textureName + '.png')
 	#
 	
 	def onKeyDown(self, key):
@@ -85,6 +109,16 @@ class GameScreen:
 		self.spriteCollection.draw(screen, self.camera)
 		self.gridTilemap.draw(screen, self.camera)
 		self.tooltip.draw(screen, Point(0, 0))
+		
+		self.drawUnits(screen, self.camera)
+	#
+	
+	def drawUnits(self, screen, offset):
+		for player in self.game.players:
+			for unit in player.units:
+				# TODO: Draw a colored version of the sprite!
+				screen.blit(self.unitImages[unit.type.name], (unit.position.x * self.tileSize.x + offset.x, unit.position.y * self.tileSize.y + offset.y))
+				# TODO: Draw unit health, ammo, cargo, hidden status, fuel warning!
 	#
 	
 	

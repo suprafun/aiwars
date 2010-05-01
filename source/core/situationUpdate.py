@@ -155,12 +155,12 @@ class SituationUpdate(object):
 	#
 	# Note that during fog-of-war, player clients only receive updates that are visible to them.
 	# Enemy money amounts and enemy transported units are hidden (a value of 0 and an empty list are sent, respectively) 
-	def toStream(self):
+	def toStream(self, hideInformation):
 		players = self.playerUpdates.keys()
 		stream = toStream(len(players))
 		
 		for playerUpdate in self.playerUpdates.itervalues():
-			stream += playerUpdate.toStream()
+			stream += playerUpdate.toStream(hideInformation)
 		
 		return stream
 	#

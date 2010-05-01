@@ -1,5 +1,6 @@
 import copy
 from unit import *
+from point import *
 from serialization import *
 
 
@@ -52,7 +53,7 @@ class UnitUpdate(object):
 		if unitID == 0:
 			return (None, 0)
 		else:
-			unit = Unit(self.game.gameDatabase, None, 0, Point(0, 0), None)
+			unit = Unit(self.game, None, 0, Point(0, 0), None)
 			readBytesCount = unit.fromStream(stream)
 			return (unit, readBytesCount)
 	#

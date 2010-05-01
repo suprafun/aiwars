@@ -64,7 +64,7 @@ class UnitType(object):
 	#
 	
 	def visionOn(self, terrainType):
-		if self.sightOverride.contains(terrainType):
+		if self.visionOverride.has_key(terrainType):
 			return self.visionOverride[terrainType]
 		else:
 			return self.vision

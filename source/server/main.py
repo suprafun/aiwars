@@ -6,6 +6,7 @@ from core.messageTypes import *
 from core.serialization import *
 from core.clientPlayerController import *
 from core.guid import *
+from core.situationUpdate import *
 from clientPlayerCheck import *
 
 
@@ -55,8 +56,18 @@ class Main(object):
 		for controller in self.playerControllers:
 			if controller.ready:
 				player = self.game.addPlayer(controller.name, getGUID())
+				
+				playerNumber = len(self.game.players) - 1
+				for building in self.game.level.getBuildingsForPlayerNumber(playerNumber):
+					player.addBuilding(building)
+				
+				# TODO: Add existing units - for pre-deployed scenarios!
+				for unit in self.game.level.getUnitsForPlayerNumber(playerNumber):
+					player.addUnit(unit)
+				
 				controller.setPlayer(player)
 		
+		# Send start-game messages to all clients:
 		playerData = toStream(len(self.game.getAllPlayers()))
 		for player in self.game.getAllPlayers():
 			playerData += player.toStream(False)
@@ -66,6 +77,22 @@ class Main(object):
 		
 		for controller in self.observerControllers:
 			controller.startGame(toStream(0) + playerData)
+		
+		# Create the initial situation update:
+		situationUpdate = SituationUpdate(self.game)
+		for player in self.game.players:
+			for unit in player.units:
+				situationUpdate.addUnitCreationForPlayer(player, unit)
+			for building in player.buildings:
+				situationUpdate.addBuildingCreationForPlayer(player, building)
+		
+		# Send initial situation-updates to all clients (player clients get filtered messages, based on their vision)
+		for controller in self.observerControllers:
+			controller.sendSituationUpdate(situationUpdate.toStream(False))
+		
+		for controller in self.playerControllers:
+			pass
+			# TODO!
 		
 		self.game.start()
 	#

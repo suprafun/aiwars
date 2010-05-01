@@ -1,5 +1,7 @@
 import struct
 from point import *
+from guid import *
+from unit import *
 
 
 def loadFromPythonFile(level, filename):
@@ -69,14 +71,31 @@ def loadFromAwsFile(level, filename):
 	teams = [team for team in players.keys()]
 	teams.sort()
 	for team in teams:
-		player = level.addPlayer()
+		playerData = level.getPlayerData(team)
 		for (x, y) in players[team]:
-			player.addBuilding(level.getBuildingAtPosition(Point(x, y)))
+			playerData.addBuilding(level.getBuildingAtPosition(Point(x, y)))
 	
 	
 	# TODO: Load units!
-	print '.aws loader not fully implemented yet: units are ignored!'
-	readpos += (width * height * 2)
+	for x in xrange(width):
+		for y in xrange(height):
+			awsUnit = ord(data[readpos]) + 256 * ord(data[readpos + 1])
+			readpos += 2
+			
+			if awsUnit == 0xFFFF:
+				# No unit at this tile
+				continue
+			
+			if not __unitMapping.has_key(awsUnit):
+				print 'unit', awsUnit, 'is not recognized (at', x, y, ')'
+				continue
+			(unitTypeName, team, description) = __unitMapping[awsUnit]
+			unitType = level.gameDatabase.getUnitTypeByName(unitTypeName)
+			
+			# Store player unit data
+			if unitType != None:
+				playerData = level.getPlayerData(team)
+				playerData.addUnit(Unit(level.game, unitType, getGUID(), Point(x, y), None))
 	
 	
 	# Read name, author and description - those strings happen to have the same format as AI Wars' string serialization, except that they use little endianness
@@ -287,134 +306,134 @@ __terrainMapping = {0: ('Plains', None, 'plains'), \
 #
 
 # Unit type name (see game database), team, description
-__unitMapping = {500: ('Infantery', 'red', 'infantery'), \
-                 501: ('Medium Tank', 'red', 'md tank'), \
-                 502: ('Recon', 'red', 'recon'), \
-                 503: ('Artillery', 'red', 'artillery'), \
-                 504: ('Anti-Air', 'red', 'a-air'), \
-                 505: ('Fighter', 'red', 'fighter'), \
-                 506: ('Battle copter', 'red', 'b copter'), \
-                 507: ('Battleship', 'red', 'battleship'), \
-                 508: ('Lander', 'red', 'lander'), \
-                 509: ('Heavy Tank', 'red', 'neo tank'), \
-                 510: ('Heavy Tank', 'red', 'war tank'), \
-                 511: ('None', 'red', 'pipe runner'), \
-                 512: ('None', 'red', 'oozium'), \
-                 520: ('Mech', 'red', 'mech'), \
-                 521: ('Tank', 'red', 'tank'), \
-                 522: ('APC', 'red', 'apc'), \
-                 523: ('Rockets', 'red', 'rockets'), \
-                 524: ('Missiles', 'red', 'missiles'), \
-                 525: ('Bomber', 'red', 'bomber'), \
-                 526: ('Transport copter', 'red', 't copter'), \
-                 527: ('Cruiser', 'red', 'cruiser'), \
-                 528: ('Sub', 'red', 'sub'), \
-                 529: ('None', 'red', '?? boat'), \
-                 530: ('None', 'red', 'carrier'), \
-                 531: ('None', 'red', 'stealth bomber'), \
-                 532: ('None', 'red', 'cruise missile'), \
-                 540: ('Infantery', 'blue', 'infantery'), \
-                 541: ('Medium Tank', 'blue', 'md tank'), \
-                 542: ('Recon', 'blue', 'recon'), \
-                 543: ('Artillery', 'blue', 'artillery'), \
-                 544: ('Anti-Air', 'blue', 'a-air'), \
-                 545: ('Fighter', 'blue', 'fighter'), \
-                 546: ('Battle copter', 'blue', 'b copter'), \
-                 547: ('Battleship', 'blue', 'battleship'), \
-                 548: ('Lander', 'blue', 'lander'), \
-                 549: ('Heavy Tank', 'blue', 'neo tank'), \
-                 550: ('Heavy Tank', 'blue', 'war tank'), \
-                 551: ('None', 'blue', 'pipe runner'), \
-                 552: ('None', 'blue', 'oozium'), \
-                 560: ('Mech', 'blue', 'mech'), \
-                 561: ('Tank', 'blue', 'tank'), \
-                 562: ('APC', 'blue', 'apc'), \
-                 563: ('Rockets', 'blue', 'rockets'), \
-                 564: ('Missiles', 'blue', 'missiles'), \
-                 565: ('Bomber', 'blue', 'bomber'), \
-                 566: ('Transport copter', 'blue', 't copter'), \
-                 567: ('Cruiser', 'blue', 'cruiser'), \
-                 568: ('Sub', 'blue', 'sub'), \
-                 569: ('None', 'blue', '?? boat'), \
-                 570: ('None', 'blue', 'carrier'), \
-                 571: ('None', 'blue', 'stealth bomber'), \
-                 572: ('None', 'blue', 'cruise missile'), \
-                 580: ('Infantery', 'green', 'infantery'), \
-                 581: ('Medium Tank', 'green', 'md tank'), \
-                 582: ('Recon', 'green', 'recon'), \
-                 583: ('Artillery', 'green', 'artillery'), \
-                 584: ('Anti-Air', 'green', 'a-air'), \
-                 585: ('Fighter', 'green', 'fighter'), \
-                 586: ('Battle copter', 'green', 'b copter'), \
-                 587: ('Battleship', 'green', 'battleship'), \
-                 588: ('Lander', 'green', 'lander'), \
-                 589: ('Heavy Tank', 'green', 'neo tank'), \
-                 590: ('Heavy Tank', 'green', 'war tank'), \
-                 591: ('None', 'green', 'pipe runner'), \
-                 592: ('None', 'green', 'oozium'), \
-                 600: ('Mech', 'green', 'mech'), \
-                 601: ('Tank', 'green', 'tank'), \
-                 602: ('APC', 'green', 'apc'), \
-                 603: ('Rockets', 'green', 'rockets'), \
-                 604: ('Missiles', 'green', 'missiles'), \
-                 605: ('Bomber', 'green', 'bomber'), \
-                 606: ('Transport copter', 'green', 't copter'), \
-                 607: ('Cruiser', 'green', 'cruiser'), \
-                 608: ('Sub', 'green', 'sub'), \
-                 609: ('None', 'green', '?? boat'), \
-                 610: ('None', 'green', 'carrier'), \
-                 611: ('None', 'green', 'stealth bomber'), \
-                 612: ('None', 'green', 'cruise missile'), \
-                 620: ('Infantery', 'yellow', 'infantery'), \
-                 621: ('Medium Tank', 'yellow', 'md tank'), \
-                 622: ('Recon', 'yellow', 'recon'), \
-                 623: ('Artillery', 'yellow', 'artillery'), \
-                 624: ('Anti-Air', 'yellow', 'a-air'), \
-                 625: ('Fighter', 'yellow', 'fighter'), \
-                 626: ('Battle copter', 'yellow', 'b copter'), \
-                 627: ('Battleship', 'yellow', 'battleship'), \
-                 628: ('Lander', 'yellow', 'lander'), \
-                 629: ('Heavy Tank', 'yellow', 'neo tank'), \
-                 630: ('Heavy Tank', 'yellow', 'war tank'), \
-                 631: ('None', 'yellow', 'pipe runner'), \
-                 632: ('None', 'yellow', 'oozium'), \
-                 640: ('Mech', 'yellow', 'mech'), \
-                 641: ('Tank', 'yellow', 'tank'), \
-                 642: ('APC', 'yellow', 'apc'), \
-                 643: ('Rockets', 'yellow', 'rockets'), \
-                 644: ('Missiles', 'yellow', 'missiles'), \
-                 645: ('Bomber', 'yellow', 'bomber'), \
-                 646: ('Transport copter', 'yellow', 't copter'), \
-                 647: ('Cruiser', 'yellow', 'cruiser'), \
-                 648: ('Sub', 'yellow', 'sub'), \
-                 649: ('None', 'yellow', '?? boat'), \
-                 650: ('None', 'yellow', 'carrier'), \
-                 651: ('None', 'yellow', 'stealth bomber'), \
-                 652: ('None', 'yellow', 'cruise missile'), \
-                 660: ('Infantery', 'black', 'infantery'), \
-                 661: ('Medium Tank', 'black', 'md tank'), \
-                 662: ('Recon', 'black', 'recon'), \
-                 663: ('Artillery', 'black', 'artillery'), \
-                 664: ('Anti-Air', 'black', 'a-air'), \
-                 665: ('Fighter', 'black', 'fighter'), \
-                 666: ('Battle copter', 'black', 'b copter'), \
-                 667: ('Battleship', 'black', 'battleship'), \
-                 668: ('Lander', 'black', 'lander'), \
-                 669: ('Heavy Tank', 'black', 'neo tank'), \
-                 670: ('Heavy Tank', 'black', 'war tank'), \
-                 671: ('None', 'black', 'pipe runner'), \
-                 672: ('None', 'black', 'oozium'), \
-                 680: ('Mech', 'black', 'mech'), \
-                 681: ('Tank', 'black', 'tank'), \
-                 682: ('APC', 'black', 'apc'), \
-                 683: ('Rockets', 'black', 'rockets'), \
-                 684: ('Missiles', 'black', 'missiles'), \
-                 685: ('Bomber', 'black', 'bomber'), \
-                 686: ('Transport copter', 'black', 't copter'), \
-                 687: ('Cruiser', 'black', 'cruiser'), \
-                 688: ('Sub', 'black', 'sub'), \
-                 689: ('None', 'black', '?? boat'), \
-                 690: ('None', 'black', 'carrier'), \
-                 691: ('None', 'black', 'stealth bomber'), \
-                 692: ('None', 'black', 'cruise missile')}
+__unitMapping = {500: ('Infantery', 0, 'infantery'), \
+                 501: ('Medium Tank', 0, 'md tank'), \
+                 502: ('Recon', 0, 'recon'), \
+                 503: ('Artillery', 0, 'artillery'), \
+                 504: ('Anti-Air', 0, 'a-air'), \
+                 505: ('Fighter', 0, 'fighter'), \
+                 506: ('Battle copter', 0, 'b copter'), \
+                 507: ('Battleship', 0, 'battleship'), \
+                 508: ('Lander', 0, 'lander'), \
+                 509: ('Heavy Tank', 0, 'neo tank'), \
+                 510: ('Heavy Tank', 0, 'war tank'), \
+                 511: (None, 0, 'pipe runner'), \
+                 512: (None, 0, 'oozium'), \
+                 520: ('Mech', 0, 'mech'), \
+                 521: ('Tank', 0, 'tank'), \
+                 522: ('APC', 0, 'apc'), \
+                 523: ('Rockets', 0, 'rockets'), \
+                 524: ('Missiles', 0, 'missiles'), \
+                 525: ('Bomber', 0, 'bomber'), \
+                 526: ('Transport copter', 0, 't copter'), \
+                 527: ('Cruiser', 0, 'cruiser'), \
+                 528: ('Sub', 0, 'sub'), \
+                 529: (None, 0, '?? boat'), \
+                 530: (None, 0, 'carrier'), \
+                 531: (None, 0, 'stealth bomber'), \
+                 532: (None, 0, 'cruise missile'), \
+                 540: ('Infantery', 1, 'infantery'), \
+                 541: ('Medium Tank', 1, 'md tank'), \
+                 542: ('Recon', 1, 'recon'), \
+                 543: ('Artillery', 1, 'artillery'), \
+                 544: ('Anti-Air', 1, 'a-air'), \
+                 545: ('Fighter', 1, 'fighter'), \
+                 546: ('Battle copter', 1, 'b copter'), \
+                 547: ('Battleship', 1, 'battleship'), \
+                 548: ('Lander', 1, 'lander'), \
+                 549: ('Heavy Tank', 1, 'neo tank'), \
+                 550: ('Heavy Tank', 1, 'war tank'), \
+                 551: (None, 1, 'pipe runner'), \
+                 552: (None, 1, 'oozium'), \
+                 560: ('Mech', 1, 'mech'), \
+                 561: ('Tank', 1, 'tank'), \
+                 562: ('APC', 1, 'apc'), \
+                 563: ('Rockets', 1, 'rockets'), \
+                 564: ('Missiles', 1, 'missiles'), \
+                 565: ('Bomber', 1, 'bomber'), \
+                 566: ('Transport copter', 1, 't copter'), \
+                 567: ('Cruiser', 1, 'cruiser'), \
+                 568: ('Sub', 1, 'sub'), \
+                 569: (None, 1, '?? boat'), \
+                 570: (None, 1, 'carrier'), \
+                 571: (None, 1, 'stealth bomber'), \
+                 572: (None, 1, 'cruise missile'), \
+                 580: ('Infantery', 2, 'infantery'), \
+                 581: ('Medium Tank', 2, 'md tank'), \
+                 582: ('Recon', 2, 'recon'), \
+                 583: ('Artillery', 2, 'artillery'), \
+                 584: ('Anti-Air', 2, 'a-air'), \
+                 585: ('Fighter', 2, 'fighter'), \
+                 586: ('Battle copter', 2, 'b copter'), \
+                 587: ('Battleship', 2, 'battleship'), \
+                 588: ('Lander', 2, 'lander'), \
+                 589: ('Heavy Tank', 2, 'neo tank'), \
+                 590: ('Heavy Tank', 2, 'war tank'), \
+                 591: (None, 2, 'pipe runner'), \
+                 592: (None, 2, 'oozium'), \
+                 600: ('Mech', 2, 'mech'), \
+                 601: ('Tank', 2, 'tank'), \
+                 602: ('APC', 2, 'apc'), \
+                 603: ('Rockets', 2, 'rockets'), \
+                 604: ('Missiles', 2, 'missiles'), \
+                 605: ('Bomber', 2, 'bomber'), \
+                 606: ('Transport copter', 2, 't copter'), \
+                 607: ('Cruiser', 2, 'cruiser'), \
+                 608: ('Sub', 2, 'sub'), \
+                 609: (None, 2, '?? boat'), \
+                 610: (None, 2, 'carrier'), \
+                 611: (None, 2, 'stealth bomber'), \
+                 612: (None, 2, 'cruise missile'), \
+                 620: ('Infantery', 3, 'infantery'), \
+                 621: ('Medium Tank', 3, 'md tank'), \
+                 622: ('Recon', 3, 'recon'), \
+                 623: ('Artillery', 3, 'artillery'), \
+                 624: ('Anti-Air', 3, 'a-air'), \
+                 625: ('Fighter', 3, 'fighter'), \
+                 626: ('Battle copter', 3, 'b copter'), \
+                 627: ('Battleship', 3, 'battleship'), \
+                 628: ('Lander', 3, 'lander'), \
+                 629: ('Heavy Tank', 3, 'neo tank'), \
+                 630: ('Heavy Tank', 3, 'war tank'), \
+                 631: (None, 3, 'pipe runner'), \
+                 632: (None, 3, 'oozium'), \
+                 640: ('Mech', 3, 'mech'), \
+                 641: ('Tank', 3, 'tank'), \
+                 642: ('APC', 3, 'apc'), \
+                 643: ('Rockets', 3, 'rockets'), \
+                 644: ('Missiles', 3, 'missiles'), \
+                 645: ('Bomber', 3, 'bomber'), \
+                 646: ('Transport copter', 3, 't copter'), \
+                 647: ('Cruiser', 3, 'cruiser'), \
+                 648: ('Sub', 3, 'sub'), \
+                 649: (None, 3, '?? boat'), \
+                 650: (None, 3, 'carrier'), \
+                 651: (None, 3, 'stealth bomber'), \
+                 652: (None, 3, 'cruise missile'), \
+                 660: ('Infantery', 4, 'infantery'), \
+                 661: ('Medium Tank', 4, 'md tank'), \
+                 662: ('Recon', 4, 'recon'), \
+                 663: ('Artillery', 4, 'artillery'), \
+                 664: ('Anti-Air', 4, 'a-air'), \
+                 665: ('Fighter', 4, 'fighter'), \
+                 666: ('Battle copter', 4, 'b copter'), \
+                 667: ('Battleship', 4, 'battleship'), \
+                 668: ('Lander', 4, 'lander'), \
+                 669: ('Heavy Tank', 4, 'neo tank'), \
+                 670: ('Heavy Tank', 4, 'war tank'), \
+                 671: (None, 4, 'pipe runner'), \
+                 672: (None, 4, 'oozium'), \
+                 680: ('Mech', 4, 'mech'), \
+                 681: ('Tank', 4, 'tank'), \
+                 682: ('APC', 4, 'apc'), \
+                 683: ('Rockets', 4, 'rockets'), \
+                 684: ('Missiles', 4, 'missiles'), \
+                 685: ('Bomber', 4, 'bomber'), \
+                 686: ('Transport copter', 4, 't copter'), \
+                 687: ('Cruiser', 4, 'cruiser'), \
+                 688: ('Sub', 4, 'sub'), \
+                 689: (None, 4, '?? boat'), \
+                 690: (None, 4, 'carrier'), \
+                 691: (None, 4, 'stealth bomber'), \
+                 692: (None, 4, 'cruise missile')}
 #
