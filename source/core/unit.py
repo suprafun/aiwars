@@ -283,6 +283,19 @@ class Unit(object):
 		return unit
 	#
 	
+	def applyUnitUpdate(self, unitUpdate):
+		self.hitpoints = unitUpdate.newUnit.hitpoints
+		self.position = unitUpdate.newUnit.position
+		self.ammunition = unitUpdate.newUnit.ammunition
+		
+		self.loadedUnits = unitUpdate.newUnit.loadedUnits
+		self.carriedBy = unitUpdate.newUnit.carriedBy
+		
+		self.hiding = unitUpdate.newUnit.hiding
+		
+		self.captureTarget = unitUpdate.newUnit.captureTarget
+	#
+	
 	
 	# Serialization - certain variables can be hidden, such as which units are carried - used during fog-of-war matches.
 	# This does not change the serialized data layout, it just writes empty lists and zeroes instead of the actual values.

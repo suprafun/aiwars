@@ -91,8 +91,9 @@ class Main(object):
 			controller.sendSituationUpdate(situationUpdate.toStream(False))
 		
 		for controller in self.playerControllers:
-			pass
-			# TODO!
+			print 'Sending filtered sit. update to player', controller.player.id
+			filteredSituationUpdate = self.game.getFilteredSituationUpdateForPlayer(situationUpdate, controller.player)
+			controller.sendSituationUpdate(filteredSituationUpdate.toStream(self.game.gameData.fogOfWar))
 		
 		self.game.start()
 	#

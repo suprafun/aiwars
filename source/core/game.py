@@ -83,4 +83,42 @@ class Game(object):
 	def getBuildingByID(self, buildingID):
 		return self.level.getBuildingByID(buildingID)
 	#
+	
+	
+	def getFilteredSituationUpdateForPlayer(self, situationUpdate, player):
+		# TODO: Filter the situation update by sight, keeping the previous unit/building states in mind for sight!
+		# Step 1: determine sight for player according to old unit/building states.
+		# Step 2: determine difference with current sight.
+		# Step 3: check the unit/building updates in the given situation update - modify them according to sight.
+		# Step 4: check if any previously seen units/buildings have now become invisible - add them as removed to the situation update.
+		# Step 5: check if any units/buildings have become visible - add them as new to the situation update.
+		
+		return situationUpdate
+	#
+	
+	
+	# Clients can't alter the game-state directly, they have to send commands to the server and apply the situation updates they receive:
+	def applySituationUpdate(self, situationUpdate):
+		for playerUpdate in situationUpdate.playerUpdates.itervalues():
+			player = playerUpdate.player
+			player.money = playerUpdate.newMoneyAmount
+			
+			for unitUpdate in playerUpdate.unitUpdates:
+				unit = player.getUnitByID(unitUpdate.unitID())
+				if unitUpdate.oldUnit == None:
+					player.addUnit(unitUpdate.newUnit)
+				elif unitUpdate.newUnit == None:
+					player.removeUnit(unit)
+				else:
+					unit.applyUnitUpdate(unitUpdate)
+			
+			for buildingUpdate in playerUpdate.buildingUpdates:
+				building = player.getBuildingByID(buildingUpdate.buildingID())
+				if buildingUpdate.oldBuilding == None:
+					player.addBuilding(buildingUpdate.newBuilding)
+				elif buildingUpdate.newBuilding == None:
+					player.removeBuilding(building)
+				else:
+					building.applyBuildingUpdate(buildingUpdate)
+	#
 #

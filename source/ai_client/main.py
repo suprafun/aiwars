@@ -10,6 +10,7 @@ class Main(object):
 	def __init__(self, host, port, name):
 		self.name = name
 		self.playerID = 0
+		self.myTurn = False
 		
 		self.gameDatabase = GameDatabase();
 		self.game = Game(self.gameDatabase)
@@ -74,31 +75,28 @@ class Main(object):
 		(playerID, readBytes) = fromStream(message, int)
 		self.game.activePlayer = self.game.getPlayerByID(playerID)
 		
-		if playerID == self.playerID:
-			print 'Starting turn!'
-			print 'TESTING: Run any code you want! (x = terminate this loop!)'
-			while True:
-				codeString = raw_input('Run code:')
-				if codeString == 'x':
-					break
-				else:
-					print eval(codeString)
-		#self.gameClient.sendMessageToServer(CTS_END_TURN, '')
-		pass
+		self.myTurn = self.playerID == playerID
 	#
 	
 	def onEndTurn(self, message):
 		print 'Turn has ended!'
-		pass
+		
+		self.myTurn = False
 	#
 	
 	def onSituationUpdate(self, message):
 		situationUpdate = SituationUpdate(self.game)
 		situationUpdate.fromStream(message)
-		print 'Situation update!'
-		for playerUpdate in situationUpdate.playerUpdates.itervalues():
-			print 'Player', playerUpdate.player.id, 'had', playerUpdate.oldMoneyAmount, 'and now has', playerUpdate.newMoneyAmount, 'money'
-		pass
+		
+		self.game.applySituationUpdate(situationUpdate)
+		
+		print 'Received situation update. Current situation is now:'
+		self.printSituation()
+		
+		if self.myTurn:
+			print '\nExecute code on self.game.activePlayer.:'
+			codeString = raw_input('Run code:')
+			print eval('self.game.activePlayer.' + codeString)
 	#
 	
 	def onResult(self, message):
@@ -109,5 +107,19 @@ class Main(object):
 	def onEndGame(self, message):
 		print 'Game has ended!'
 		pass
+	#
+	
+	
+	# Debug functions
+	def printSituation(self):
+		for player in self.game.players:
+			selfString = '' if player.id != self.playerID else ' (MYSELF)'
+			print 'Player #' + str(player.id) + ' (' + player.name + ')' + selfString + ' has $' + str(player.money) + '.'
+			print 'Buildings:'
+			for building in player.buildings:
+				print '\t' + building.type.name + ' #' + str(building.id) + ' at ' + str(building.position) + ', has ' + str(building.capturePoints) + ' capture points.'
+			print 'Units:'
+			for unit in player.units:
+				print '\t' + unit.type.name + ' #' + str(unit.id) + ' at ' + str(unit.position) + ', has ' + str(unit.hitpoints) + ' hitpoints.'
 	#
 #

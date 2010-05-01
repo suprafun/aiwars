@@ -50,6 +50,10 @@ class Building(object):
 		return building
 	#
 	
+	def applyBuildingUpdate(self, buildingUpdate):
+		self.capturePoints = buildingUpdate.newBuilding.capturePoints
+	#
+	
 	
 	# Serialization
 	def toStream(self, hideInformation):

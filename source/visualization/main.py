@@ -130,22 +130,24 @@ class Main:
 	
 	# Observer-specific message handling
 	def onPlayerStartedTurn(self, message):
-		print 'Player started turn!'
-		pass
+		playerID, readBytes = fromStream(message, int)
+		print 'Player', playerID, 'turn has started.'
 	#
 	
 	def onPlayerEndedTurn(self, message):
-		print 'Player ended turn!'
-		pass
+		playerID, readBytes = fromStream(message, int)
+		print 'Player', playerID, 'turn has ended.'
 	#
 	
 	def onSituationUpdate(self, message):
 		situationUpdate = SituationUpdate(self.game)
 		situationUpdate.fromStream(message)
+		
+		self.game.applySituationUpdate(situationUpdate)
+		
 		print 'Full situation update!'
 		print len(situationUpdate.playerUpdates), 'players involved:'
 		for player, playerUpdate in situationUpdate.playerUpdates.iteritems():
 			print 'player', player.id, 'has', len(playerUpdate.unitUpdates), 'unit updates and', len(playerUpdate.buildingUpdates), 'building updates'
-		pass
 	#
 #

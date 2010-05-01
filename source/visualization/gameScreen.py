@@ -108,9 +108,9 @@ class GameScreen:
 		self.baseTilemap.draw(screen, self.camera)
 		self.spriteCollection.draw(screen, self.camera)
 		self.gridTilemap.draw(screen, self.camera)
-		self.tooltip.draw(screen, Point(0, 0))
-		
 		self.drawUnits(screen, self.camera)
+		
+		self.tooltip.draw(screen, Point(0, 0))
 	#
 	
 	def drawUnits(self, screen, offset):

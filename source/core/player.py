@@ -58,6 +58,7 @@ class Player(object):
 		if not building in self.buildings:
 			self.buildings.append(building)
 			building.player = self
+			
 			self.__updateVisibilityMaps(building.position, 0, -1, 1)
 	#
 	
@@ -95,11 +96,12 @@ class Player(object):
 	#
 	
 	def addUnit(self, unit):
-		self.units.append(unit)
-		unit.player = self
+		if not unit in self.units:
+			self.units.append(unit)
+			unit.player = self
 		
-		self.unitIsFinished(unit)
-		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+			self.unitIsFinished(unit)
+			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
 	#
 	
 	def getUnitByID(self, unitID):
