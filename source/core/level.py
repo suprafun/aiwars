@@ -146,7 +146,6 @@ class Level(object):
 		
 		self.buildings = []
 		for i in xrange(buildingsCount):
-			# TODO: Instead of having to create a Building instance with some default type, construct one directly from a stream?
 			building = Building(self.game, self.gameDatabase.getBuildingType(0), 0, Point(0, 0), None)
 			readBytesCount += building.fromStream(stream[readBytesCount:])
 			self.buildings.append(building)

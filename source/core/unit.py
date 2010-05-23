@@ -14,6 +14,7 @@ class Unit(object):
 		self.hitpoints = self.type.maxHitpoints if self.type != None else 10
 		self.position = position
 		self.ammunition = self.type.maxAmmunition if self.type != None else 0
+		self.fuel = self.type.maxFuel if self.type != None else 99
 		
 		self.loadedUnits = []
 		self.carriedBy = None
@@ -37,12 +38,30 @@ class Unit(object):
 		return self.type.movementCostFor(terrainType)
 	#
 	
+	# Returns the amount of fuel that this unit will use for this turn.
+	# Fuel consumption is usually higher when hidden. Most units don't use fuel per turn.
+	def fuelConsumptionForTurn(self):
+		if self.isHiding():
+			return self.type.fuelCostPerTurnWhileHiding
+		else:
+			return self.type.fuelCostPerTurn
+	#
+	
+	# Consumes fuel at the start of this turn
+	def consumeFuelForTurn(self):
+		self.fuel = max(0, self.fuel - self.fuelConsumptionForTurn())
+	#
+	
+	def needsFuelToStayAlive(self):
+		return self.type.needsFuelToStayAlive
+	#
+	
 	# Move to the specified position, instantly (route checking is up to the player). Also moves all units that are being transported.
-	def moveTo(self, position, useFuel = True):
+	def moveTo(self, position, fuelCost):
 		self.position.set(position)
-		# TODO: Subtract fuel!
+		self.fuel -= fuelCost
 		for unit in self.transports:
-			unit.moveTo(position, False)
+			unit.moveTo(position, 0)
 	#
 	
 	# Returns True if this unit is currently transporting one or more units.
@@ -104,15 +123,14 @@ class Unit(object):
 		if self.canLoad(unit.type):
 			self.loadedUnits.append(unit)
 			unit.carriedBy = self
-			unit.moveTo(self.position)
-			unit.resupply()
+			unit.moveTo(self.position, 0)
 	#
 	
-	# Unload the specified unit at the given destination.
+	# Unload the specified unit at the given destination. Unloading does not cost fuel for the unloaded unit.
 	def unloadUnit(self, unit, destination):
 		if unit.carriedBy is self and manhattanDistance(self.position, destination) == 1:
 			self.loadedUnits.remove(unit)
-			unit.moveTo(destination)
+			unit.moveTo(destination, 0)
 			unit.carriedBy = None
 	#
 	
@@ -123,14 +141,13 @@ class Unit(object):
 	
 	# Does this unit need any supplies?
 	def needsResupply(self):
-		return self.ammunition < self.type.maxAmmunition
-		# TODO: Or when missing some fuel!
+		return self.ammunition < self.type.maxAmmunition or self.fuel < self.type.maxFuel
 	#
 	
 	# Fully restores this units ammunition supply.
 	def resupply(self):
 		self.ammunition = self.type.maxAmmunition
-		# TODO: Resupply fuel too!
+		self.fuel = self.type.maxFuel
 	#
 	
 	# Is this unit damaged?
@@ -277,6 +294,7 @@ class Unit(object):
 		
 		unit.hitpoints = self.hitpoints
 		unit.ammunition = self.ammunition
+		unit.fuel = self.fuel
 		
 		unit.loadedUnits = self.loadedUnits[:]
 		unit.carriedBy = self.carriedBy
@@ -292,6 +310,7 @@ class Unit(object):
 		self.hitpoints = unitUpdate.newUnit.hitpoints
 		self.position = unitUpdate.newUnit.position
 		self.ammunition = unitUpdate.newUnit.ammunition
+		self.fuel = unitUpdate.newUnit.fuel
 		
 		self.loadedUnits = unitUpdate.newUnit.loadedUnits
 		self.carriedBy = unitUpdate.newUnit.carriedBy
@@ -326,6 +345,7 @@ class Unit(object):
 		                self.position.x, \
 		                self.position.y, \
 		                self.ammunition, \
+		                self.fuel, \
 		                loadedUnitIDs, \
 		                carriedByID, \
 		                self.hiding, \
@@ -341,11 +361,12 @@ class Unit(object):
 		 self.position.x, \
 		 self.position.y, \
 		 self.ammunition, \
+		 self.fuel, \
 		 loadedUnitIDs, \
 		 carriedByID, \
 		 self.hiding, \
 		 captureTargetID, \
-		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, int, list, int, bool, int)
+		 readBytesCount) = fromStream(stream, int, int, int, int, int, int, int, int, list, int, bool, int)
 		
 		self.type = self.game.gameDatabase.getUnitType(typeIndex)
 		self.player = self.game.getPlayerByID(playerID)

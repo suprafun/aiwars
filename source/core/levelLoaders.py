@@ -76,7 +76,7 @@ def loadFromAwsFile(level, filename):
 			playerData.addBuilding(level.getBuildingAtPosition(Point(x, y)))
 	
 	
-	# TODO: Load units!
+	# Load units
 	for x in xrange(width):
 		for y in xrange(height):
 			awsUnit = ord(data[readpos]) + 256 * ord(data[readpos + 1])

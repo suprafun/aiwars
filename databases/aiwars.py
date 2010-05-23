@@ -33,31 +33,31 @@ database.terrainTypes.extend([road, plains, forest, mountain, river, bridge, sho
 #================================================================================
 # Unit types
 
-# name, cost, movementPoints, vision, maxAmmunition
+# name, cost, movementPoints, vision, maxAmmunition, maxFuel
 # Ground units
-infantery        = UnitType('Infantery',         1000,   3,  2,  0, canCapture = True)
-mech             = UnitType('Mech',              3000,   2,  2,  3, canCapture = True)
-recon            = UnitType('Recon',             4000,   8,  5,  0)
-apc              = UnitType('APC',               5000,   6,  1,  0, canSupply = True)
-antiAir          = UnitType('Anti-Air',          8000,   6,  2,  9)
-tank             = UnitType('Tank',              7000,   6,  3,  9)
-mediumTank       = UnitType('Medium Tank',      16000,   5,  1,  8)
-heavyTank        = UnitType('Heavy Tank',       22000,   6,  1,  9)
-artillery        = UnitType('Artillery',         6000,   5,  1,  9, minRange = 2, maxRange = 3, canActAfterMoving = False, canRetaliate = False)
-rockets          = UnitType('Rockets',          15000,   5,  1,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
-missiles         = UnitType('Missiles',         12000,   4,  5,  6, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
+infantery        = UnitType('Infantery',         1000,   3,  2,  0, 99, canCapture = True)
+mech             = UnitType('Mech',              3000,   2,  2,  3, 70, canCapture = True)
+recon            = UnitType('Recon',             4000,   8,  5,  0, 80)
+apc              = UnitType('APC',               5000,   6,  1,  0, 70, canSupply = True)
+antiAir          = UnitType('Anti-Air',          8000,   6,  2,  9, 60)
+tank             = UnitType('Tank',              7000,   6,  3,  9, 70)
+mediumTank       = UnitType('Medium Tank',      16000,   5,  1,  8, 50)
+heavyTank        = UnitType('Heavy Tank',       22000,   6,  1,  9, 99)
+artillery        = UnitType('Artillery',         6000,   5,  1,  9, 50, minRange = 2, maxRange = 3, canActAfterMoving = False, canRetaliate = False)
+rockets          = UnitType('Rockets',          15000,   5,  1,  6, 50, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
+missiles         = UnitType('Missiles',         12000,   4,  5,  6, 50, minRange = 3, maxRange = 5, canActAfterMoving = False, canRetaliate = False)
 
 # Aerial units
-fighter          = UnitType('Fighter',          20000,   9,  2,  9)
-bomber           = UnitType('Bomber',           22000,   7,  2,  9)
-battleCopter     = UnitType('Battle copter',     9000,   6,  3,  6)
-transportCopter  = UnitType('Transport copter',  5000,   6,  2,  0)
+fighter          = UnitType('Fighter',          20000,   9,  2,  9, 99)
+bomber           = UnitType('Bomber',           22000,   7,  2,  9, 99)
+battleCopter     = UnitType('Battle copter',     9000,   6,  3,  6, 99)
+transportCopter  = UnitType('Transport copter',  5000,   6,  2,  0, 99)
 
 # Naval units
-battleShip       = UnitType('Battleship',       28000,   5,  2,  9, minRange = 2, maxRange = 6, canActAfterMoving = False, canRetaliate = False)
-cruiser          = UnitType('Cruiser',          18000,   6,  3,  9)
-lander           = UnitType('Lander',           12000,   6,  1,  0)
-sub              = UnitType('Sub',              20000,   5,  5,  6, canHide = True)
+battleShip       = UnitType('Battleship',       28000,   5,  2,  9, 99, minRange = 2, maxRange = 6, canActAfterMoving = False, canRetaliate = False)
+cruiser          = UnitType('Cruiser',          18000,   6,  3,  9, 99)
+lander           = UnitType('Lander',           12000,   6,  1,  0, 99)
+sub              = UnitType('Sub',              20000,   5,  5,  6, 60, canHide = True)
 
 groundUnits = [infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets, missiles]
 aerialUnits = [fighter, bomber, battleCopter, transportCopter]
@@ -67,6 +67,21 @@ navalUnits = [battleShip, cruiser, lander, sub]
 database.unitTypes.extend([infantery, mech, recon, apc, antiAir, tank, mediumTank, heavyTank, artillery, rockets, missiles, \
                            fighter, bomber, battleCopter, transportCopter, \
                            battleShip, cruiser, lander, sub])
+
+# Aerial and naval units take some fuel each turn, and they die if they run out of fuel
+for unitType in aerialUnits + navalUnits:
+	unitType.needsFuelToStayAlive = True
+
+fighter.fuelCostPerTurn = 5
+bomber.fuelCostPerTurn = 5
+battleCopter.fuelCostPerTurn = 2
+transportCopter.fuelCostPerTurn = 2
+
+battleShip.fuelCostPerTurn = 1
+cruiser.fuelCostPerTurn = 1
+lander.fuelCostPerTurn = 1
+sub.fuelCostPerTurn = 1
+sub.fuelCostPerTurnWhileHiding = 5
 
 # Infantery can look further when standing on tall mountains
 infantery.overrideVisionForTerrainType(mountain, 4)

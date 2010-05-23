@@ -2,7 +2,7 @@ from serialization import *
 
 
 class UnitType(object):
-	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxHitpoints = 10, minRange = 1, maxRange = 1, canActAfterMoving = True, canRetaliate = True, canSupply = False, canCapture = False, canHide = False):
+	def __init__(self, name, cost, movementPoints, vision, maxAmmunition, maxFuel, maxHitpoints = 10, minRange = 1, maxRange = 1, canActAfterMoving = True, canRetaliate = True, canSupply = False, canCapture = False, canHide = False):
 		self.gameDatabase = None
 		
 		self.name = name                                # This type's name, for example 'tank', or 'attack helicopter'.
@@ -11,6 +11,11 @@ class UnitType(object):
 		self.vision = vision                            # How far this unit can see.
 		self.stealthDetectionRange = 1					# Stealth detection range - 1 by default. Scanners could have a higher range
 		self.maxHitpoints = maxHitpoints                # Maximum number of hitpoints. Usually 10.
+		
+		self.maxFuel = maxFuel                          # Maximum amount of fuel that this unit can carry
+		self.fuelCostPerTurn = 0                        # Some units use some fuel at the start of each turn (for example, aerial and naval units)
+		self.fuelCostPerTurnWhileHiding = 0             # Hiding units may use more fuel per turn (for example, a submarine)
+		self.needsFuelToStayAlive = False               # Some units die when they're out of fuel (for example, aerial and naval units)
 		
 		self.primaryDamage = {}                         # Primary damage dealt against other unit types, uses ammunition.
 		self.secondaryDamage = {}                       # Secondary damage dealt against other unit types, uses no ammunition.
@@ -30,8 +35,6 @@ class UnitType(object):
 		
 		self.transports = {}                            # The unit types that can be transported, and how much room they occupy.
 		self.maxTransportSlots = 0                      # Maximum transport capacity (some units can take up multiple slots).
-		
-		# TODO: Add fuel capacity, fuel usage per turn and needs-fuel-to-stay-alive flag!
 	#
 	
 	def setDamageAgainst(self, unitType, primaryDamage, secondaryDamage):
@@ -63,6 +66,11 @@ class UnitType(object):
 			return terrainType.movementCost
 	#
 	
+	# Returns false if the specified terrain type is impassable for this unit type.
+	def canMoveAcross(self, terrainType):
+		return self.movementCostFor(terrainType) <= self.movementPoints
+	#
+	
 	def visionOn(self, terrainType):
 		if self.visionOverride.has_key(terrainType):
 			return self.visionOverride[terrainType]
@@ -86,6 +94,10 @@ class UnitType(object):
 		                self.movementPoints, \
 		                self.vision, \
 		                self.maxHitpoints, \
+		                self.maxFuel, \
+		                self.fuelCostPerTurn, \
+		                self.fuelCostPerTurnWhileHiding, \
+		                self.needsFuelToStayAlive, \
 		                self.__dictionaryToList(self.primaryDamage, self.gameDatabase.getIndexOfUnitType), \
 		                self.__dictionaryToList(self.secondaryDamage, self.gameDatabase.getIndexOfUnitType), \
 		                self.maxAmmunition, \
@@ -115,6 +127,10 @@ class UnitType(object):
 		 self.movementPoints, \
 		 self.vision, \
 		 self.maxHitpoints, \
+		 self.maxFuel, \
+		 self.fuelCostPerTurn, \
+		 self.fuelCostPerTurnWhileHiding, \
+		 self.needsFuelToStayAlive, \
 		 self.primaryDamage, \
 		 self.secondaryDamage, \
 		 self.maxAmmunition, \
@@ -129,7 +145,7 @@ class UnitType(object):
 		 self.canHide, \
 		 self.transports, \
 		 self.maxTransportSlots, \
-		 readBytesCount) = fromStream(stream, str, int, int, int, int, list, list, int, int, int, bool, bool, list, list, bool, bool, bool, list, int)
+		 readBytesCount) = fromStream(stream, str, int, int, int, int, int, int, int, bool, list, list, int, int, int, bool, bool, list, list, bool, bool, bool, list, int)
 		
 		return readBytesCount
 	#

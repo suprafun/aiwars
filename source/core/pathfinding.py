@@ -48,9 +48,10 @@ def getReachableTiles(level, start, unitType):
 	return [node.position for node in closedList]
 #
 
-# Checks if the specified unit type can follow the given route within one turn. This fu nction only checks the terrain, it does not look for obstructing units.
-def isRouteValid(level, unitType, route):
-	movementPointsLeft = unitType.movementPoints
+# Checks if the specified unit type can follow the given route within one turn. This function only checks the terrain and available fuel,
+# it does not look for obstructing units.
+def isRouteValid(level, unit, route):
+	movementPointsLeft = min(unit.type.movementPoints, unit.fuel)
 	for tile in route:
 		movementPointsLeft -= unitType.movementCostFor(level.getTerrainType(tile))
 		if movementPointsLeft < 0:
@@ -63,12 +64,19 @@ def isRouteValid(level, unitType, route):
 # Returns (success, route, obstructing unit). If there is no obstructing unit, (True, original route, None) is returned.
 # Otherwise, (False, route up to the obstructing unit, obstructing unit) is returned.
 def isRouteUnobstructed(players, route):
-	for i in xrange(len(route)):
+	for i, tile in enumerate(route):
 		for player in players:
-			obstructingUnit = player.getUnitAtPosition(route[i])
+			obstructingUnit = player.getUnitAtPosition(tile)
 			if obstructingUnit != None:
 				return (False, route[:i], obstructingUnit)
 	return (True, route, None)
+#
+
+def fuelCostForRoute(level, unit, route):
+	cost = 0
+	for tile in route:
+		cost += unit.type.movementCostFor(level.getTerrainType(tile))
+	return cost
 #
 
 

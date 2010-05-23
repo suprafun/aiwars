@@ -131,7 +131,11 @@ class Player(object):
 			if unit in self.__finishedUnits:
 				self.__finishedUnits.remove(unit)
 			
-			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
+			if not unit.isLoaded():
+				self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
+			
+			for loadedUnit in unit.loadedUnits:
+				self.removeUnit(loadedUnit)
 	#
 	
 	# NOTE: Not used? Current approach is to let each command function return a situation update, which is then handled by the caller.
@@ -151,7 +155,19 @@ class Player(object):
 		for building in self.buildings:
 			self.money += building.type.income
 		
-		# Check all units that can be resupplied or repaired. Units standing on friendly buildings or next to supplying units will be supplied.
+		# First, units that consume fuel per turn will do so.
+		for unit in filter(lambda unit: unit.fuelConsumptionForTurn() > 0, self.units):
+			unitUpdate = situationUpdate.addUnitUpdateForPlayer(self, unit)
+			unit.consumeFuelForTurn()
+			if unit.needsFuelToStayAlive() and unit.fuel <= 0:
+				self.__addLoadedUnitRemovalsToSituationUpdate(unit, situationUpdate)
+				self.removeUnit(unit)
+				unitUpdate.newUnit = None
+		
+		# Check all units that can be resupplied or repaired:
+		# - units standing on friendly buildings
+		# - units standing next to supplying units
+		# - units that are carried by a supplying unit
 		# Units standing on friendly buildings that can repair them will be repaired up to 2 hitpoints (less if not enough funds is available).
 		# Units are checked in the order that they're built.
 		supplyingUnits = filter(Unit.canSupply, self.units)
@@ -160,7 +176,9 @@ class Player(object):
 			
 			resupply = False
 			if unit.needsResupply():
-				if building != None:
+				if unit.isLoaded() and unit.carriedBy.canSupply():
+					resupply = True
+				elif building != None:
 					resupply = True
 				else:
 					for supplyingUnit in supplyingUnits:
@@ -192,8 +210,6 @@ class Player(object):
 						else:
 							break
 		
-		# TODO: Subtract fuel for units that use fuel each turn and remove any crashed units (units that ran out of fuel with the setting 'needs-fuel-to-survive')
-		
 		self.__activeUnits = self.units[:]
 		self.__movedUnits = []
 		self.__finishedUnits = []
@@ -203,22 +219,21 @@ class Player(object):
 		
 		situationUpdate.updateMoneyAmountForPlayer(self, self.money)
 		return (ACTION_RESULT_SUCCESS, situationUpdate)
-		# TODO: Send listeners a situationUpdate! resupplied units + money update!
 	#
 	
 	# Returns a (result, situationUpdate) tuple - the situation update is None if the result is invalid.
-	# TODO: Add a utility function that updates the visibility/stealth detection maps and that extracts a list
-	# of no-longer visible and newly visible units/buildings from other players!
 	def moveUnit(self, unitID, route):
 		unit = self.getUnitByID(unitID)
 		if unit == None or not self.unitCanMove(unit):
 			return (ACTION_RESULT_INVALID, None)
 		
-		if not isRouteValid(self.game.level, unit.type, route):
+		# If this unit doesn't have sufficient fuel and movement points for the specified route, it's an invalid move.
+		if not isRouteValid(self.game.level, unit, route):
 			return (ACTION_RESULT_INVALID, None)
 		
-		# TODO: Also tell what unit obstructed the route, and check if that unit was previously visible - if visible, it's an INVALID move. If invisible, it's a TRAPPED situation!!!
+		# Check up to what point the given route is unobstructed.
 		(unobstructedRoute, route, obstructingUnit) = isRouteUnobstructed(self.game.getOtherPlayers(), route)
+		fuelCost = fuelCostForRoute(self.game.level, unit, route)
 		
 		# An empty route is invalid!
 		if len(route) == 0:
@@ -233,7 +248,7 @@ class Player(object):
 			
 			# Otherwise, the unit has been trapped.
 			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
-			unit.moveTo(route[-1])
+			unit.moveTo(route[-1], fuelCost)
 			self.unitIsFinished(unit)
 			self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			
@@ -245,8 +260,10 @@ class Player(object):
 		
 		if unitAtDestination != None:
 			if unitAtDestination.canLoad(unit):
+				unit.fuel -= fuelCost
 				return self.__loadUnit(unit, unitAtDestination)
 			elif unit.canCombineWithUnit(unitAtDestination):
+				unit.fuel -= fuelCost
 				return self.__combineUnits(unit, unitAtDestination)
 			else:
 				return (ACTION_RESULT_INVALID, None)
@@ -255,7 +272,7 @@ class Player(object):
 			situationUpdate.addUnitUpdateForPlayer(self, unit)
 			
 			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
-			unit.moveTo(route[-1])
+			unit.moveTo(route[-1], fuelCost)
 			self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			
 			if unit.canActAfterMoving():
@@ -300,7 +317,11 @@ class Player(object):
 	
 	def unloadUnit(self, unitID, destination):
 		unit = self.getUnitByID(unitID)
-		if unit == None or unit.carriedBy == None or not self.unitCanMove(unit):
+		if unit == None or not unit.isLoaded() or not self.unitCanMove(unit):
+			return (ACTION_RESULT_INVALID, None)
+		
+		# Units can only be unloaded onto tiles that they can move across, but they must also be able to cross the tile that the transporting unit is on.
+		if not unit.canMoveAcross(self.game.level.getTerrainType(unit.position)) or not unit.canMoveAcross(self.game.level.getTerrainType(destination)):
 			return (ACTION_RESULT_INVALID, None)
 		
 		for player in self.game.getAllPlayers():
@@ -367,10 +388,12 @@ class Player(object):
 		unit.attackUnit(targetUnit)
 		
 		if not targetUnit.alive():
+			self.__addLoadedUnitRemovalsToSituationUpdate(targetUnit, situationUpdate)
 			targetUnit.player.removeUnit(targetUnit)
 			targetUnitUpdate.newUnit = None
 		
 		if not unit.alive():
+			self.__addLoadedUnitRemovalsToSituationUpdate(unit, situationUpdate)
 			self.removeUnit(unit)
 			unitUpdate.newUnit = None
 		else:
@@ -456,6 +479,14 @@ class Player(object):
 	#
 	
 	
+	# Recursively adds a unit removal update to the situation update for all transported units (excluding the transporting unit).
+	def __addLoadedUnitRemovalsToSituationUpdate(self, unit, situationUpdate):
+		if unit.isTransportingUnits():
+			for loadedUnit in unit.loadedUnits:
+				situationUpdate.addUnitRemovalForPlayer(loadedUnit.player, loadedUnit)
+				self.__addLoadedUnitRemovalsToSituationUpdate(loadedUnit, situationUpdate)
+	#
+	
 	def unitCanMove(self, unit):
 		return unit in self.__activeUnits
 	#
@@ -521,7 +552,6 @@ class Player(object):
 	def toStream(self, hideInformation):
 		return toStream(self.id, \
 		                self.name)
-		# TODO: Also send units and buildings along?
 	#
 	
 	# All but the game variable will be deserialized.

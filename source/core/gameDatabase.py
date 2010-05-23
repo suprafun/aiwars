@@ -119,7 +119,7 @@ class GameDatabase(object):
 		
 		self.unitTypes = []
 		for i in xrange(unitTypesCount):
-			unitType = UnitType('', 0, 0, 0, 0)
+			unitType = UnitType('', 0, 0, 0, 0, 0)
 			unitType.gameDatabase = self
 			readBytesCount += unitType.fromStream(stream[readBytesCount:])
 			self.unitTypes.append(unitType)

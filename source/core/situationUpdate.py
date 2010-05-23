@@ -65,7 +65,6 @@ class SituationUpdate(object):
 			return existingUnitUpdate
 	#
 	
-	# TODO: Refactor this into the above unit design!!!
 	def addBuildingCreationForPlayer(self, player, building):
 		if building == None:
 			return
