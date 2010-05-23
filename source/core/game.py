@@ -86,14 +86,69 @@ class Game(object):
 	
 	
 	def getFilteredSituationUpdateForPlayer(self, situationUpdate, player):
-		# TODO: Filter the situation update by sight, keeping the previous unit/building states in mind for sight!
-		# Step 1: determine sight for player according to old unit/building states.
-		# Step 2: determine difference with current sight.
-		# Step 3: check the unit/building updates in the given situation update - modify them according to sight.
-		# Step 4: check if any previously seen units/buildings have now become invisible - add them as removed to the situation update.
-		# Step 5: check if any units/buildings have become visible - add them as new to the situation update.
+		oldVisibilityMap = player.getOldVisibilityMapForSituationUpdate(situationUpdate)
+		newVisibilityMap = player.getVisibilityMap()
 		
-		return situationUpdate
+		filteredSituationUpdate = SituationUpdate(situationUpdate.game)
+		
+		# A player can always see changes to it's own units and buildings
+		if situationUpdate.playerUpdates.has_key(player):
+			filteredSituationUpdate.playerUpdates[player] = situationUpdate.playerUpdates[player]
+		
+		# Check the units and buildings for the other players, taking any changes into account, and check which part of these updates are visible to the player.
+		for otherPlayer in self.getOtherPlayers(player):
+			otherPlayerUpdate = None
+			if situationUpdate.playerUpdates.has_key(otherPlayer):
+				otherPlayerUpdate = situationUpdate.playerUpdates[otherPlayer]
+			
+			# First, create a dictionary for all units, that maps their ID to a (oldUnit, newUnit) tuple. If a unit has not been modified,
+			# both oldUnit and newUnit will refer to the same Unit.
+			unitComparisons = {}
+			for unit in otherPlayer.units:
+				unitComparisons[unit.id] = (unit, unit)
+			if otherPlayerUpdate:
+				for unitUpdate in otherPlayerUpdate.unitUpdates:
+					unitComparisons[unitUpdate.unitID()] = (unitUpdate.oldUnit, unitUpdate.newUnit)
+			
+			# The same goes for buildings.
+			buildingComparisons = {}
+			for building in otherPlayer.buildings:
+				buildingComparisons[building.id] = (building, building)
+			if otherPlayerUpdate:
+				for buildingUpdate in otherPlayerUpdate.buildingUpdates:
+					buildingComparisons[buildingUpdate.buildingID()] = (buildingUpdate.oldBuilding, buildingUpdate.newBuilding)
+			
+			# Check which units have changed, from this players point of view
+			for oldUnit, newUnit in unitComparisons.itervalues():
+				wasVisible = (oldUnit != None and oldVisibilityMap.unitIsVisible(oldUnit))
+				isVisible = (newUnit != None and newVisibilityMap.unitIsVisible(newUnit))
+				
+				# If the unit's visibility has changed, or, if it has stayed visible but has also been modified, include it in the situation update
+				if wasVisible != isVisible or (wasVisible and isVisible and newUnit != oldUnit):
+					if not wasVisible:
+						filteredSituationUpdate.addUnitCreationForPlayer(otherPlayer, newUnit)
+					elif not isVisible:
+						filteredSituationUpdate.addUnitRemovalForPlayer(otherPlayer, oldUnit)
+					else:
+						unitUpdate = filteredSituationUpdate.addUnitUpdateForPlayer(otherPlayer, oldUnit)
+						unitUpdate.newUnit = newUnit
+			
+			# The same goes for buildings.
+			for oldBuilding, newBuilding in buildingComparisons.itervalues():
+				wasVisible = (oldBuilding != None and oldVisibilityMap.buildingIsVisible(oldBuilding))
+				isVisible = (newBuilding != None and newVisibilityMap.buildingIsVisible(newBuilding))
+				
+				# If the buildings visibility has changed, or, if it has stayed visible but has also been modified, include it in the situation update
+				if wasVisible != isVisible or (wasVisible and isVisible and newBuilding != oldBuilding):
+					if not wasVisible:
+						filteredSituationUpdate.addBuildingCreationForPlayer(otherPlayer, newBuilding)
+					elif not isVisible:
+						filteredSituationUpdate.addBuildingRemovalForPlayer(otherPlayer, oldBuilding)
+					else:
+						buildingUpdate = filteredSituationUpdate.addBuildingUpdateForPlayer(otherPlayer, oldBuilding)
+						buildingUpdate.newBuilding = newBuilding
+		
+		return filteredSituationUpdate
 	#
 	
 	

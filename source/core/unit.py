@@ -246,6 +246,11 @@ class Unit(object):
 		return self.hiding
 	#
 	
+	# True if this unit is hidden by terrain
+	def isHiddenByTerrain(self):
+		return self.game.level.getTerrainType(self.position).hideUnits
+	#
+	
 	
 	# Forcefully kill this unit.
 	def kill(self):

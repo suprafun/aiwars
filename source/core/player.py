@@ -3,6 +3,7 @@ from unit import *
 from building import *
 from pathfinding import *
 from situationUpdate import *
+from visibilityMap import *
 
 
 ACTION_RESULT_SUCCESS = chr(0)
@@ -29,11 +30,7 @@ class Player(object):
 		
 		# Visibility maps, shows how many units can see a certain tile. It is updated every time a unit is created, moved, loaded, unloaded, or destroyed,
 		# and every time a building is captured or lost.
-		self.__visibleTiles = []
-		self.__stealthDetectedTiles = []
-		for y in xrange(self.game.level.height()):
-			self.__visibleTiles.append([0] * self.game.level.width())
-			self.__stealthDetectedTiles.append([0] * self.game.level.width())
+		self.__visibilityMap = VisibilityMap(self.game.gameData, self.game.level)
 		
 		
 		# Listeners should implement the following methods:
@@ -59,7 +56,7 @@ class Player(object):
 			self.buildings.append(building)
 			building.player = self
 			
-			self.__updateVisibilityMaps(building.position, 0, -1, 1)
+			self.__visibilityMap.addVision(building.position, 0, 0)
 	#
 	
 	def getBuildingByID(self, buildingID):
@@ -84,7 +81,7 @@ class Player(object):
 		if building in self.buildings:
 			buildings.remove(building)
 			building.player = None
-			self.__updateVisibilityMaps(building.position, 0, -1, -1)
+			self.__visibilityMap.removeVision(building.position, 0, 0)
 			
 			# If the building was critical, check if there's still any other critical buildings left!
 			if building.isCritical():
@@ -101,7 +98,7 @@ class Player(object):
 			unit.player = self
 		
 			self.unitIsFinished(unit)
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+			self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 	#
 	
 	def getUnitByID(self, unitID):
@@ -134,7 +131,7 @@ class Player(object):
 			if unit in self.__finishedUnits:
 				self.__finishedUnits.remove(unit)
 			
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
+			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 	#
 	
 	# NOTE: Not used? Current approach is to let each command function return a situation update, which is then handled by the caller.
@@ -228,17 +225,17 @@ class Player(object):
 			return (ACTION_RESULT_INVALID, None)
 		
 		# If the obstructing unit was visible, then this route is invalid - units can't cross enemy units!
-		if self.canSeeEnemyUnit(obstructingUnit):
+		if self.__visibilityMap.unitIsVisible(obstructingUnit):
 			return (ACTION_RESULT_INVALID, None)
 		else:
 			situationUpdate = SituationUpdate(self.game)
 			situationUpdate.addUnitUpdateForPlayer(self, unit)
 			
 			# Otherwise, the unit has been trapped.
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
+			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			unit.moveTo(route[-1])
 			self.unitIsFinished(unit)
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+			self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			
 			return (ACTION_RESULT_TRAPPED, situationUpdate)
 		
@@ -257,9 +254,9 @@ class Player(object):
 			situationUpdate = SituationUpdate(self.game)
 			situationUpdate.addUnitUpdateForPlayer(self, unit)
 			
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
+			self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			unit.moveTo(route[-1])
-			self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+			self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 			
 			if unit.canActAfterMoving():
 				self.unitHasMoved(unit)
@@ -276,7 +273,7 @@ class Player(object):
 		situationUpdate.addUnitUpdateForPlayer(self, unit)
 		
 		# Load this unit.
-		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
+		self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 		unitAtDestination.loadUnit(unit)
 		# Loaded units can't see!
 		
@@ -290,9 +287,9 @@ class Player(object):
 		situationUpdate.addUnitUpdateForPlayer(self, unit)
 		
 		# Combine the units. Any left-over hitpoints are turned into cash.
-		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), -1)
+		self.__visibilityMap.removeVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 		leftOverHitpoints = unit.combineWithUnit(unitAtDestination)
-		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+		self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 		
 		self.removeUnit(unitAtDestination)
 		self.money += unit.repairCost(leftOverHitpoints)
@@ -317,7 +314,7 @@ class Player(object):
 		unit.carriedBy.unloadUnit(unit, destination)
 		
 		self.unitIsFinished(unit)
-		self.__updateVisibilityMaps(unit.position, unit.currentVision(), unit.currentStealthDetectionRange(), 1)
+		self.__visibilityMap.addVision(unit.position, unit.currentVision(), unit.currentStealthDetectionRange())
 		return (ACTION_RESULT_SUCCESS, situationUpdate)
 	#
 	
@@ -485,55 +482,36 @@ class Player(object):
 			self.__finishedUnits.append(unit)
 	#
 	
-	# All tiles are visible in normal mode, but in fog-of-war mode, only tiles within sight are visible.
-	# Some terrain types can hide units, they are only visible when a unit is standing directly next to them.
-	def canSeeTile(self, position):
-		if not self.game.fogOfWar:
-			return True
-		else:
-			return self.__visibleTiles[position.y][position.x] > 0
+	# Returns this players visibility map. Do not alter!
+	def getVisibilityMap(self):
+		return self.__visibilityMap
 	#
 	
-	# Returns True if the specified tile lies within the stealth detection range of at least one friendly unit.
-	# Usually this means that there's a friendly unit next to the specified tile (if stealth detection range is 1).
-	def canStealthDetectTile(self, position):
-		return self.__stealthDetectedTiles[position.y][position.x] > 0
-	#
-	
-	# Checks if the enemy unit is visible. If it is hidden, it can only be detected by units next to it.
-	def canSeeEnemyUnit(self, enemyUnit):
-		if enemyUnit.isLoaded() and self.game.fogOfWar:
-			return False
-		elif enemyUnit.isHiding():
-			return self.canSeeHiddenUnit(enemyUnit)
-		else:
-			return self.canSeeTile(enemyUnit.position)
-	#
-	
-	# Hidden units can only be seen when they're within a friendly units stealth detection range.
-	def canSeeHiddenUnit(self, hiddenUnit):
-		return self.canStealthDetectTile(hiddenUnit.position)
-	#
-	
-	# When moving a unit from one location to another, call this function twice: once with it's original position and a modifier of -1,
-	# and then with it's new position and a modifier of 1. When a unit is destroyed, call this function once, with a modifier of -1,
-	# and when a unit is built, call it once with a modifier of 1.
-	# The same is done for adding and removing buildings: when adding, call with the building position, a visionRange of 1 and a modifier of 1.
-	# When the building is lost, call this function again with a modifier of -1.
-	def __updateVisibilityMaps(self, position, visionRange, stealthDetectionRange, modifier):
-		for y in xrange(position.y - visionRange, position.y + visionRange + 1):
-			width = visionRange - abs(y - position.y)
-			for x in xrange(position.x - width, position.x + width + 1):
-				if x >= 0 and y >= 0 and x < self.game.level.width() and y < self.game.level.height():
-					oldValue = self.__visibleTiles[y][x]
-					self.__visibleTiles[y][x] += modifier
+	# Returns a copy of this players visibility map, as it was before the given situation update.
+	# That is, any changes to this players units and buildings are reverted
+	def getOldVisibilityMapForSituationUpdate(self, situationUpdate):
+		oldVisibilityMap = copy.copy(self.__visibilityMap)
+		if situationUpdate.playerUpdates.has_key(self):
+			playerUpdate = situationUpdate.playerUpdates[self]
+			
+			# Remove the current vision and add the old vision for each unit and building - depending on whether or not they had and have vision.
+			for unitUpdate in playerUpdate.unitUpdates:
+				if unitUpdate.newUnit != None and not unitUpdate.newUnit.isLoaded():
+					oldVisibilityMap.removeVision(unitUpdate.newUnit.position, \
+					                              unitUpdate.newUnit.currentVision(), \
+					                              unitUpdate.newUnit.currentStealthDetectionRange())
+				if unitUpdate.oldUnit != None and not unitUpdate.oldUnit.isLoaded():
+					oldVisibilityMap.addVision(unitUpdate.oldUnit.position, \
+					                           unitUpdate.oldUnit.currentVision(), \
+					                           unitUpdate.oldUnit.currentStealthDetectionRange())
+			
+			for buildingUpdate in playerUpdate.buildingUpdates:
+				if buildingUpdate.newBuilding != None:
+					oldVisibilityMap.removeVision(buildingUpdate.newBuilding.position, 0, 0)
+				if buildingUpdate.oldBuilding != None:
+					oldVisibilityMap.addVision(buildingUpdate.oldBuilding.position, 0, 0)
 		
-		for y in xrange(position.y - stealthDetectionRange, position.y + stealthDetectionRange + 1):
-			width = stealthDetectionRange - abs(y - position.y)
-			for x in xrange(position.x - width, position.x + width + 1):
-				if x >= 0 and y >= 0 and x < self.game.level.width() and y < self.game.level.height():
-					oldValue = self.__stealthDetectedTiles[y][x]
-					self.__stealthDetectedTiles[y][x] += modifier
+		return oldVisibilityMap
 	#
 	
 	
